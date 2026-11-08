@@ -478,17 +478,22 @@ function tryOpen(last){var w=S.want;if(!w)return;if($('lb').open&&S.open&&String
  if(!c&&last){var m=/^(yt|youtube|twitch|kick):(.+)$/.exec(w);if(m)c=m[1]==='yt'?{n:w,ty:'video',p:'YouTube',id:m[2],t:'YouTube video',tags:[]}:m[1]==='youtube'?{n:w,ty:'stream',kind:'live',p:'YouTube',id:m[2],t:'YouTube live stream',sub:'YouTube'}:{n:w,ty:'stream',kind:'live',p:m[1]==='twitch'?'Twitch':'Kick',ch:m[2],t:m[2],name:m[2],sub:m[2]}}
  if(c){S.want=null;clearTimeout(tryOpen.t);openItem(c)}else if(last){S.want=null;syncHash()}}
 function syncHash(){var hs=toHash();if(location.hash!==hs){try{history.replaceState(null,'',hs)}catch(e){}}}
+// News articles can't be embedded, so they open as a preview card on the site (Vin, Nov 8): picture, headline,
+// summary and a link to the full article, with the same favorite button as everything else.
+function articleView(c){var img=c.thumb?h('img',{class:'artimg',src:c.thumb,alt:'',loading:'lazy'}):null;if(img)img.onerror=function(){img.remove()};
+ return h('article',{class:'art'},[img,h('div',{class:'artb'},[h('div',{class:'artsrc'},[logo(srcKey(c),16),h('span',{text:(c.site||'News')+(c.pub?' · '+ago(c.pub):'')})]),
+  h('h3',{text:c.t}),c.desc?h('p',{text:c.desc}):null,
+  h('a',{class:'pill solid',href:c.url,target:'_blank',rel:'noopener',text:'Read the full article on '+(c.site||'the site')})])])}
 function openItem(c){
- if(c.p==='News'){window.open(c.url,'_blank','noopener');return}
  S.open=c;S.unmuted=false;TW.pl=null;bump(c.tags,2);RC.start(c,'open');var t=type(c);$('unm').hidden=!(MOBILE&&t!=='post'&&['YouTube','TikTok','Twitch','Kick'].indexOf(c.p)>=0);
  var cls=t==='post'?'post':(t==='video'&&(c.p==='TikTok'||c.short||c.vert))?'tall':'wide';
  stopUp();AUTO.done=null;
  if(c.clip&&c.dur){var dc=c;AUTO.dt=setTimeout(function(){ended(dc)},(c.dur+3)*1000)}
- if(c.p==='Twitch'&&!c.clip)twitchPlayer(c);else if(c.kclip)videoPlayer(c);else{var fr=h('iframe',{class:'frame '+cls,src:embedUrl(c),allow:'autoplay; encrypted-media; fullscreen; picture-in-picture',allowfullscreen:'',title:c.t});$('player').replaceChildren(fr);if(c.p==='YouTube')fr.addEventListener('load',function(){ytListen(fr)})}
+ if(c.p==='News')$('player').replaceChildren(articleView(c));else if(c.p==='Twitch'&&!c.clip)twitchPlayer(c);else if(c.kclip)videoPlayer(c);else{var fr=h('iframe',{class:'frame '+cls,src:embedUrl(c),allow:'autoplay; encrypted-media; fullscreen; picture-in-picture',allowfullscreen:'',title:c.t});$('player').replaceChildren(fr);if(c.p==='YouTube')fr.addEventListener('load',function(){ytListen(fr)})}
  if(c.p==='TikTok'){setTimeout(ttSound,1200);setTimeout(ttSound,2500)}
- $('lt').textContent=t==='post'?'Post by '+who(c):c.t;
+ $('lt').textContent=c.p==='News'?'Article from '+(c.site||'the news'):t==='post'?'Post by '+who(c):c.t;
  $('lm').textContent=t==='stream'?(c.kind==='live'?[c.name,'Live on '+c.p,c.viewers!=null?fmt(c.viewers)+' watching':'',c.game].filter(Boolean).join(' · '):'Past broadcast on '+c.p+' · '+c.sub):t==='post'?'On '+srcName(c)+(c.pub?' · '+ago(c.pub):''):vmeta(c)+' · '+srcName(c);
- var s=$('src');s.href=pageUrl(c);s.replaceChildren(logo(srcKey(c),16),document.createTextNode('Open on '+(srcKey(c)==='Rockstar'?'YouTube':srcName(c))));
+ var s=$('src');s.hidden=c.p==='News';s.href=pageUrl(c);s.replaceChildren(logo(srcKey(c),16),document.createTextNode('Open on '+(srcKey(c)==='Rockstar'?'YouTube':srcName(c))));
  saveBtn();
  $('ltags').replaceChildren.apply($('ltags'),(c.tags||[]).map(function(x){return h('button',{text:x,onclick:function(){S.sec=vidSec(c);S.tag=x;S.csrc='All';bump([x],1);closeLb();render();window.scrollTo(0,0)}})}));
  var pool=S.pool=t==='stream'?(c.kind==='live'?(LIVE||[]):STREAMS).filter(function(x){return x!==c}):t==='post'?POSTS.filter(function(x){return x!==c}):VIDEOS.filter(function(x){return x!==c&&isShort(x)===isShort(c)&&x.tags.some(function(y){return c.tags.indexOf(y)>=0})});

@@ -1,3 +1,24 @@
+function openItem(c){
+ S.open=c;S.unmuted=false;TW.pl=null;bump(c.tags,2);RC.start(c,'open');var t=type(c);$('unm').hidden=!(MOBILE&&t!=='post'&&['YouTube','TikTok','Twitch','Kick'].indexOf(c.p)>=0);
+ var cls=t==='post'?'post':(t==='video'&&(c.p==='TikTok'||c.short||c.vert))?'tall':'wide';
+ stopUp();AUTO.done=null;
+ if(c.clip&&c.dur){var dc=c;AUTO.dt=setTimeout(function(){ended(dc)},(c.dur+3)*1000)}
+ if(c.p==='News')$('player').replaceChildren(articleView(c));else if(c.p==='Twitch'&&!c.clip)twitchPlayer(c);else if(c.kclip)videoPlayer(c);else{var fr=h('iframe',{class:'frame '+cls,src:embedUrl(c),allow:'autoplay; encrypted-media; fullscreen; picture-in-picture',allowfullscreen:'',title:c.t});$('player').replaceChildren(fr);if(c.p==='YouTube')fr.addEventListener('load',function(){ytListen(fr)})}
+ if(c.p==='TikTok'){setTimeout(ttSound,1200);setTimeout(ttSound,2500)}
+ $('lt').textContent=c.p==='News'?'Article from '+(c.site||'the news'):t==='post'?'Post by '+who(c):c.t;
+ $('lm').textContent=t==='stream'?(c.kind==='live'?[c.name,'Live on '+c.p,c.viewers!=null?fmt(c.viewers)+' watching':'',c.game].filter(Boolean).join(' · '):'Past broadcast on '+c.p+' · '+c.sub):t==='post'?'On '+srcName(c)+(c.pub?' · '+ago(c.pub):''):vmeta(c)+' · '+srcName(c);
+ var s=$('src');s.hidden=c.p==='News';s.href=pageUrl(c);s.replaceChildren(logo(srcKey(c),16),document.createTextNode('Open on '+(srcKey(c)==='Rockstar'?'YouTube':srcName(c))));
+ saveBtn();
+ $('ltags').replaceChildren.apply($('ltags'),(c.tags||[]).map(function(x){return h('button',{text:x,onclick:function(){S.sec=vidSec(c);S.tag=x;S.csrc='All';bump([x],1);closeLb();render();window.scrollTo(0,0)}})}));
+ var pool=S.pool=t==='stream'?(c.kind==='live'?(LIVE||[]):STREAMS).filter(function(x){return x!==c}):t==='post'?POSTS.filter(function(x){return x!==c}):VIDEOS.filter(function(x){return x!==c&&isShort(x)===isShort(c)&&x.tags.some(function(y){return c.tags.indexOf(y)>=0})});
+ $('nextb').hidden=!nextOf(c);autoBtn();
+ renderChat(c);
+ $('nexth').textContent=t==='stream'?'More streams':t==='post'?'More posts':'Up next';
+ $('upnext').replaceChildren.apply($('upnext'),pool.slice(0,5).map(function(x){return t==='post'?card(x,0):h('button',{class:'ni',type:'button',onclick:function(){openItem(x)}},[thumb(x,0),h('div',{},[h('div',{class:'title',text:x.t,style:'font-size:14px'}),h('div',{class:'meta',text:who(x)+' · '+srcName(x)})])])}));
+ $('lbbox').scrollTop=0;
+ if(!$('lb').open)$('lb').showModal();
+ syncHash();
+}
 function crownSvg(){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','18');sv.setAttribute('height','18');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('aria-hidden','true');sv.setAttribute('class','crown');pa.setAttribute('d','M3 7.5l4.6 4.1L12 4.5l4.4 7.1L21 7.5l-1.9 10.5H4.9z');pa.setAttribute('fill','#FFC23D');pa.setAttribute('stroke','#B8860B');pa.setAttribute('stroke-width','1.2');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function starSvg(filled){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','16');sv.setAttribute('height','16');sv.setAttribute('viewBox','0 0 16 16');sv.setAttribute('aria-hidden','true');pa.setAttribute('d','M8 1.2l2.05 4.25 4.65.62-3.4 3.22.86 4.61L8 11.65 3.84 13.9l.86-4.61-3.4-3.22 4.65-.62z');pa.setAttribute('fill',filled?'currentColor':'none');pa.setAttribute('stroke','currentColor');pa.setAttribute('stroke-width','1.6');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function saveBtn(){var on=!!S.saved[S.open.n];var b=$('save');b.replaceChildren(starSvg(on),document.createTextNode(on?'In favorites':'Add to favorites'));b.setAttribute('aria-pressed',String(on));b.className='pill'+(on?' solid':'')}
@@ -30,27 +51,3 @@ function ended(c){
  tick();
 }
 function stopUp(){clearTimeout(AUTO.t);AUTO.t=null;clearTimeout(AUTO.dt);var b=$('upbar');if(b)b.hidden=true}
-$('upno').onclick=function(){stopUp()};
-$('nextb').onclick=function(){var nx=nextOf(S.open);if(nx)openItem(nx)};
-function autoBtn(){var b=$('autob');b.textContent='Autoplay: '+(AUTO.on?'On':'Off');b.setAttribute('aria-pressed',String(AUTO.on))}
-$('autob').onclick=function(){AUTO.on=!AUTO.on;store('gc_auto',AUTO.on);autoBtn();if(!AUTO.on&&AUTO.t){clearTimeout(AUTO.t);AUTO.t=null;$('upwhen').textContent='Up next';$('upno').textContent='Dismiss'}};
-function ytEnded(data){var d=data;if(typeof d==='string'){try{d=JSON.parse(d)}catch(x){return false}}if(!d)return false;
- return (d.event==='onStateChange'&&d.info===0)||(d.event==='infoDelivery'&&d.info&&d.info.playerState===0)}
-function ytListen(fr){try{fr.contentWindow.postMessage(JSON.stringify({event:'listening',id:'gc',channel:'widget'}),'*');fr.contentWindow.postMessage(JSON.stringify({event:'command',func:'addEventListener',args:['onStateChange'],id:'gc',channel:'widget'}),'*')}catch(x){}}
-var TW={state:0,cbs:[]};
-function twitchScript(cb){if(window.Twitch&&Twitch.Player)return cb(true);TW.cbs.push(cb);if(TW.state)return;TW.state=1;var sc=document.createElement('script');sc.src='https://player.twitch.tv/js/embed/v1.js';sc.async=true;
- sc.onload=function(){var l=TW.cbs;TW.cbs=[];TW.state=0;l.forEach(function(f){f(!!(window.Twitch&&Twitch.Player))})};sc.onerror=function(){var l=TW.cbs;TW.cbs=[];TW.state=0;l.forEach(function(f){f(false)})};document.head.append(sc)}
-function twitchPlayer(c){
- var box=h('div',{class:'frame wide',id:'twp'});$('player').replaceChildren(box);
- twitchScript(function(ok){if(S.open!==c||!document.getElementById('twp'))return;
-  if(!ok){$('player').replaceChildren(h('iframe',{class:'frame wide',src:embedUrl(c),allow:'autoplay; encrypted-media; fullscreen; picture-in-picture',allowfullscreen:'',title:c.t}));return}
-  var o={width:'100%',height:'100%',parent:[HOST],autoplay:true,muted:MOBILE};if(c.vod)o.video='v'+c.vod;else o.channel=c.ch;
-  var pl=TW.pl=new Twitch.Player('twp',o),played=false;
-  pl.addEventListener(Twitch.Player.PLAYING,function(){played=true});
-  pl.addEventListener(Twitch.Player.ENDED,function(){ended(c)});
-  pl.addEventListener(Twitch.Player.OFFLINE,function(){if(played)ended(c)});
- });
-}
-// Kick clips: Kick's clip files play in a plain video player (HLS through hls.js where the browser can't play it natively).
-var HLS={state:0,cbs:[]};
-function hlsScript(cb){if(window.Hls)return cb(true);HLS.cbs.push(cb);if(HLS.state)return;HLS.state=1;var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';sc.async=true;sc.onload=function(){var l=HLS.cbs;HLS.cbs=[];HLS.state=0;l.forEach(function(f){f(!!window.Hls)})};sc.onerror=function(){var l=HLS.cbs;HLS.cbs=[];HLS.state=0;l.forEach(function(f){f(false)})};document.head.append(sc)}
