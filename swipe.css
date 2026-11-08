@@ -1,6 +1,11 @@
 /* Swipe mode: full-screen vertical clip feed on phones (js/swipe.js) */
 html.swon,html.swon body{overflow:hidden}
 .swipe{position:fixed;inset:0;z-index:45;background:#000;color:#fff}
+/* Built once and kept hidden between visits so the shared YouTube player keeps its sound permission */
+.swipe:not(.open){visibility:hidden;pointer-events:none}
+.swstage{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .15s;will-change:transform}
+.swstage.show{opacity:1}
+.swstage iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .swl{position:absolute;inset:0;overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;outline:0}
 .swl::-webkit-scrollbar{display:none}
 .sws{position:relative;height:100vh;height:100dvh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:#000}
@@ -22,3 +27,8 @@ html.swon,html.swon body{overflow:hidden}
 .swx{pointer-events:auto;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:999px;background:rgba(0,0,0,.35);color:#fff;cursor:pointer}
 .swhint{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:3;background:rgba(0,0,0,.7);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;pointer-events:none;white-space:nowrap}
 .swfail{position:relative;z-index:2}
+.swtap{position:absolute;left:50%;top:calc(66px + env(safe-area-inset-top));transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;padding:11px 18px;border:0;border-radius:999px;background:#fff;color:#000;font:700 15px Inter,system-ui,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.45);cursor:pointer;white-space:nowrap}
+.swtap[hidden]{display:none}
+.swtap:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.swpz{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;width:76px;height:76px;border-radius:999px;background:rgba(0,0,0,.45);color:#fff;display:none;align-items:center;justify-content:center;pointer-events:none}
+.swipe.swpaused .swpz{display:flex}
