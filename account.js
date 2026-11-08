@@ -76,22 +76,21 @@ function accGo(provider){
 // One sheet for both states: Google/Apple buttons when signed out, the profile when signed in.
 function signIn(why,then,item){ACC.why=why;ACC.pend=item?item.n:null;ACC.then=then||null;accSheet();var d=$('sid');if(!d.open)d.showModal()}
 function accX(){return h('button',{type:'button',class:'accx',id:'sidx','aria-label':'Close',onclick:accClose},[accSvg('<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',20)])}
-function accSheet(){var f=$('sidf');ACC.delArm=false;
+function accSheet(){var f=$('sidf');ACC.delArm=false;if(!$('sid').querySelector('.accx'))$('sid').prepend(accX());
  if(!ACC.prof){
   var lg=document.querySelector('.logo img');
-  f.replaceChildren(accX(),
+  f.replaceChildren(
    h('div',{class:'acclogo'},[h('img',{src:lg?lg.src:'/logo.svg',alt:'GRANDCLIPS',width:'558',height:'84'})]),
    h('h2',{id:'sidh',class:'sr',text:'Sign in to GRANDCLIPS'}),
    h('p',{id:'sidp',class:'acctag',text:ACC.why&&ACC.why!=='Sign in'?ACC.why+'.':'Sign in or create an account to save your favorites.'}),
    h('div',{class:'accbtns'},[
     h('button',{type:'button',class:'accb google',onclick:function(){accGo('google')}},[accSvg(ACCI.google,20),document.createTextNode('Continue with Google')]),
     h('button',{type:'button',class:'accb apple',onclick:function(){accGo('apple')}},[accSvg(ACCI.apple,20),document.createTextNode('Continue with Apple')])]),
-   h('div',{class:'err',id:'siderr','aria-live':'polite'}),
-   h('p',{class:'accfine',text:'New accounts get a random name and avatar.'}));
+   h('div',{class:'err',id:'siderr','aria-live':'polite'}));
   return}
  var p=ACC.prof,inp=h('input',{id:'sidu',value:p.username,maxlength:'20',autocomplete:'off',autocapitalize:'off',spellcheck:'false','aria-describedby':'siderr'});
  var av=h('div',{class:'accav'},[AV.el(p.avatar_seed,96)]);
- f.replaceChildren(accX(),
+ f.replaceChildren(
   h('div',{class:'acchead'},[av,h('div',{},[h('h2',{id:'sidh',text:'@'+p.username}),h('button',{type:'button',class:'pill sm',onclick:accNewAvatar},[accSvg(ACCI.dice,16),document.createTextNode('New avatar')])])]),
   h('label',{for:'sidu',text:'Username'}),
   h('div',{class:'accname'},[inp,h('button',{type:'button',class:'pill sm',title:'Random name','aria-label':'Random name',onclick:function(){inp.value=accName(2);inp.focus()}},[accSvg(ACCI.dice,16)]),h('button',{type:'submit',class:'pill solid sm',text:'Save'})]),

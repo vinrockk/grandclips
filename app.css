@@ -248,7 +248,7 @@ div.frame iframe{display:block;width:100%;height:100%;border:0}
 .acckill.arm{border-color:#FF8FA9}
 .sid{position:fixed}
 .sid h2#sidh{padding-right:44px}
-.accx{position:absolute;top:12px;right:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #3A3D47;background:#0E0F13;color:var(--text);cursor:pointer;z-index:1}
+.accx{position:absolute;top:-16px;right:-16px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #3A3D47;background:#0E0F13;color:var(--text);cursor:pointer;z-index:1}
 .accx:hover{background:#22252D}
 .accx:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
 .accbtns+.err:empty{min-height:0;margin:0}
@@ -263,3 +263,8 @@ div.frame iframe{display:block;width:100%;height:100%;border:0}
 .artb h3{margin:0;font-size:22px;line-height:1.25}
 .artb p{margin:0;color:var(--muted);line-height:1.5}
 .artsrc{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:600}
+.sid{overflow:visible;outline:none}
+.sid:focus,.sid:focus-visible{outline:none}
+#sidf{max-height:calc(90vh - 48px);overflow-y:auto;overflow-x:visible}
+.accx{box-shadow:0 4px 14px rgba(0,0,0,.5)}
+@media (max-width:640px){.accx{top:-14px;right:-8px}}
