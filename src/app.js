@@ -392,7 +392,7 @@ function render(){
  var l=list(),all0=l.length;
  // Items already showing in the featured slider at the top aren't repeated in the grid (unless searching or filtering).
  if(((isVid(S.sec)&&S.csrc==='All'&&S.tag==='All')||(S.sec==='streams'&&S.filt.streams==='All'))&&!S.q.trim()){var fs={};featItems().forEach(function(c){fs[c.n]=1});l=l.filter(function(c){return !fs[c.n]})}
- var ranked=(isVid(S.sec)&&sub!=='foryou')||S.sec==='rankings';
+ var ranked=S.sec==='rankings';
  var noun={clips:['clip','clips'],videos:['video','videos'],streams:['stream','streams'],threads:['post','posts'],watchlist:['favorite','favorites'],rankings:sub==='creators'?['creator','creators']:['clip','clips']}[S.sec];
  $('cnt').textContent=l.length.toLocaleString()+' '+noun[l.length===1?0:1]+(isVid(S.sec)&&S.csrc!=='All'?' from '+LABEL[S.csrc]:'')+(isVid(S.sec)&&S.tag!=='All'?' tagged '+S.tag:'')+(S.q?' matching "'+S.q+'"':'');
  var g=$('grid');g.replaceChildren();g.className='grid'+(S.sec==='threads'?' posts mason':'')+(S.sec==='clips'?' tallg':'');g.style.gridTemplateColumns='';applyView(g);
