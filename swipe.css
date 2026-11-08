@@ -22,8 +22,3 @@ html.swon,html.swon body{overflow:hidden}
 .swx{pointer-events:auto;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:999px;background:rgba(0,0,0,.35);color:#fff;cursor:pointer}
 .swhint{position:absolute;left:50%;bottom:30%;transform:translateX(-50%);z-index:3;background:rgba(0,0,0,.7);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;pointer-events:none;white-space:nowrap}
 .swfail{position:relative;z-index:2}
-.swgo{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:30;display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 18px;border:0;border-radius:999px;background:var(--pink);color:var(--bg);font:700 15px Inter,system-ui,sans-serif;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.45)}
-.swgo[hidden]{display:none}
-.swgo:focus-visible{outline:2px solid var(--text);outline-offset:2px}
-html.swon .swgo{display:none}
-.a2hs:not([hidden])~#swfab{bottom:calc(120px + env(safe-area-inset-bottom))}

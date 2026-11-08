@@ -72,9 +72,3 @@ function swEnd(){if(!SW.on)return;SW.on=false;RC.stop();if(SW.io)SW.io.disconnec
 window.addEventListener('popstate',function(){if(SW.on){SW.pushed=false;swEnd()}});
 document.addEventListener('keydown',function(e){if(!SW.on)return;if(e.key==='Escape'){swClose();return}
  if(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='j'||e.key==='k'){e.preventDefault();var d=(e.key==='ArrowDown'||e.key==='j')?1:-1;SW.box.scrollTo({top:Math.max(0,SW.i+d)*SW.box.clientHeight,behavior:'smooth'})}});
-// A floating Swipe mode button shows on the Clips tab, on phones only.
-(function(){var fab=h('button',{type:'button',class:'swgo',id:'swfab',hidden:'',onclick:function(){swOpen(0)}},[swIcon(SWI.play,16,true),document.createTextNode('Swipe mode')]);document.body.append(fab);
- function sync(){fab.hidden=!(phone()&&S.sec==='clips'&&!searching())}
- var base=viewCtl;viewCtl=function(){base();sync()};
- window.addEventListener('resize',function(){clearTimeout(sync.t);sync.t=setTimeout(sync,200)});
- sync()})();

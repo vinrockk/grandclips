@@ -1,3 +1,4 @@
+RC.save=function(){var P=RC.P,ks=Object.keys(P.seen);if(ks.length>1500){ks.sort(function(a,b){return P.seen[a][0]-P.seen[b][0]});ks.slice(0,ks.length-1200).forEach(function(x){delete P.seen[x]})}P.at=Date.now();store('gc_prof',P)};
 RC.add=function(c,w,tagW){var P=RC.P,cr=creatorOf(c);if(cr)P.c[cr.k]=(P.c[cr.k]||0)+w;var sk=srcKey(c);P.p[sk]=(P.p[sk]||0)+w*0.3;if(tagW)bump(c.tags,tagW);P.n+=Math.abs(w)};
 // start: something began playing (opened, or reached in swipe mode). stop: credit the watch time.
 RC.start=function(c,how){RC.stop();if(!c||type(c)==='post')return;RC.cur={c:c,t:Date.now(),how:how};var e=RC.P.seen[c.n]||[0,0,0];e[0]=Date.now();if(how==='open'){e[2]++;RC.add(c,1,0)}RC.P.seen[c.n]=e;RC.save()};
@@ -59,22 +60,4 @@ function rkCreator(o,i){
  return h('button',{class:'rrow',type:'button','aria-label':'#'+(i+1)+': '+o.name+', '+o.f.toLocaleString()+' favorites',onclick:function(){showCreator(o)}},[
   h('span',{class:'rnum r'+(i+1),text:String(i+1)}),h('span',{class:'av '+o.p,'aria-hidden':'true',text:o.name.replace('@','').charAt(0).toUpperCase()}),
   h('span',{class:'rinfo'},[h('b',{text:o.name,style:'overflow:hidden;text-overflow:ellipsis;white-space:nowrap'}),h('span',{class:'meta',text:'★ '+fmt(o.f)+' · '+o.p+' · '+o.n+' '+(type(o.top)==='post'?(o.n===1?'post':'posts'):type(o.top)==='stream'?(o.n===1?'stream':'streams'):(o.n===1?'clip':'clips'))})])]);
-}
-function renderRank(){
- var per=S.rper,q=S.q.trim().toLowerCase(),cr=S.sub.rankings==='creators';
- var key=[S.sub.rankings,per,q].join('|');if(key!==RK.key){RK.key=key;RK.n={}}
- var cols=[['clip','Clips',VIDEOS.filter(isShort)],['video','Videos',VIDEOS.filter(function(c){return !isShort(c)})],['stream','Streams',(LIVE||[]).concat(STREAMS)],['post','Threads',POSTS]];
- var total=0,wrap=h('div',{class:'rk3'});
- cols.forEach(function(col){
-  var items=cr?creators(per,col[2]).filter(function(o){return !q||(o.name+' '+o.p+' '+o.top.t).toLowerCase().indexOf(q)>=0})
-   :col[2].filter(function(c){return match(c,q)&&favs(c)[per]>0}).sort(function(a,b){return favs(b)[per]-favs(a)[per]});
-  total+=items.length;var n=RK.n[col[0]]||10;
-  var box=h('section',{class:'rcol','aria-label':col[1]+' ranking'},[h('h2',{},[col[0]==='stream'?h('span',{class:'dot','aria-hidden':'true'}):null,document.createTextNode(col[1]),h('span',{class:'meta',text:items.length.toLocaleString()+' ranked'})])]);
-  if(!items.length)box.append(h('div',{class:'empty',text:col[0]==='stream'&&LIVE===null?'Checking who is live…':'Nothing ranked yet.'}));
-  items.slice(0,n).forEach(function(x,i){box.append(cr?rkCreator(x,i):rkRow(x,i))});
-  if(items.length>n)box.append(h('button',{class:'more',type:'button',text:'Show more',onclick:function(){RK.n[col[0]]=n+10;render()}}));
-  wrap.append(box);
- });
- $('cnt').textContent='';
- return wrap;
 }

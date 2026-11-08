@@ -1,3 +1,5 @@
+var RPER=[['d','Today'],['w','This week'],['m','This month'],['a','All time']];
+var RNAME={d:'today',w:'this week',m:'this month',a:'of all time'};
 var HOST=location.hostname||'localhost';
 // Phones and tablets only allow videos inside embeds to start on their own when muted, so they start muted with a Tap to unmute button.
 var MOBILE=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
@@ -55,4 +57,3 @@ var RC={P:load('gc_prof',null),cur:null};
 (function(){var P=RC.P;if(!P||!P.c)P=RC.P={c:{},p:{},seen:{},n:0,at:Date.now()};
  var k=Math.pow(0.5,(Date.now()-(P.at||Date.now()))/(14*864e5));if(k<0.999){['c','p'].forEach(function(m){for(var x in P[m]){P[m][x]*=k;if(Math.abs(P[m][x])<0.05)delete P[m][x]}});for(var t in S.hist){S.hist[t]*=k;if(S.hist[t]<0.05)delete S.hist[t]}P.n*=k;store('gc_hist',S.hist)}
  P.at=Date.now()})();
-RC.save=function(){var P=RC.P,ks=Object.keys(P.seen);if(ks.length>1500){ks.sort(function(a,b){return P.seen[a][0]-P.seen[b][0]});ks.slice(0,ks.length-1200).forEach(function(x){delete P.seen[x]})}P.at=Date.now();store('gc_prof',P)};

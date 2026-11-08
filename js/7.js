@@ -1,3 +1,6 @@
+// Typing in the search bar searches the whole site (clips, videos, live and past streams, posts), not only the open tab.
+// Favorites and Rankings keep their own search. Results: best title/creator match first, then most popular.
+var CARDTALL=null;
 function searching(){return !!S.q.trim()&&['clips','videos','streams','threads'].indexOf(S.sec)>=0}
 function searchGroups(){var q=S.q.trim(),w=qWords(q);
  function strong(c){var t=' '+fold((c.t||'')+' '+who(c)+' '+(c.name||'')).replace(/[^\p{L}\p{N}]+/gu,' ');return w.every(function(x){return t.indexOf(' '+x)>=0})?1:0}

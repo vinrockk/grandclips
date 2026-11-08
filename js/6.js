@@ -1,3 +1,21 @@
+function renderRank(){
+ var per=S.rper,q=S.q.trim().toLowerCase(),cr=S.sub.rankings==='creators';
+ var key=[S.sub.rankings,per,q].join('|');if(key!==RK.key){RK.key=key;RK.n={}}
+ var cols=[['clip','Clips',VIDEOS.filter(isShort)],['video','Videos',VIDEOS.filter(function(c){return !isShort(c)})],['stream','Streams',(LIVE||[]).concat(STREAMS)],['post','Threads',POSTS]];
+ var total=0,wrap=h('div',{class:'rk3'});
+ cols.forEach(function(col){
+  var items=cr?creators(per,col[2]).filter(function(o){return !q||(o.name+' '+o.p+' '+o.top.t).toLowerCase().indexOf(q)>=0})
+   :col[2].filter(function(c){return match(c,q)&&favs(c)[per]>0}).sort(function(a,b){return favs(b)[per]-favs(a)[per]});
+  total+=items.length;var n=RK.n[col[0]]||10;
+  var box=h('section',{class:'rcol','aria-label':col[1]+' ranking'},[h('h2',{},[col[0]==='stream'?h('span',{class:'dot','aria-hidden':'true'}):null,document.createTextNode(col[1]),h('span',{class:'meta',text:items.length.toLocaleString()+' ranked'})])]);
+  if(!items.length)box.append(h('div',{class:'empty',text:col[0]==='stream'&&LIVE===null?'Checking who is live…':'Nothing ranked yet.'}));
+  items.slice(0,n).forEach(function(x,i){box.append(cr?rkCreator(x,i):rkRow(x,i))});
+  if(items.length>n)box.append(h('button',{class:'more',type:'button',text:'Show more',onclick:function(){RK.n[col[0]]=n+10;render()}}));
+  wrap.append(box);
+ });
+ $('cnt').textContent='';
+ return wrap;
+}
 function showCreator(o){var t=type(o.top);S.sec=t==='post'?'threads':t==='stream'?'streams':vidSec(o.top);if(t==='video'){S.sub[S.sec]='views';S.tag='All';S.csrc='All'}else if(t==='post')S.filt.threads='All';else{S.sub.streams=o.top.kind==='live'?'live':'vod';S.filt.streams='All'}S.q=o.name.replace(/^@/,'');$('q').value=S.q;render();window.scrollTo(0,0)}
 // Your language first: every list puts items in your language on top (then your country's language), keeping the usual order inside each group.
 // The language comes from the platform where it exists (YouTube audio language, Twitch and Kick stream language, Bluesky post language), otherwise from the title.
@@ -42,6 +60,3 @@ function list(){
  else l=RC.rank(l);
  return langFirst(l);
 }
-// Typing in the search bar searches the whole site (clips, videos, live and past streams, posts), not only the open tab.
-// Favorites and Rankings keep their own search. Results: best title/creator match first, then most popular.
-var CARDTALL=null;
