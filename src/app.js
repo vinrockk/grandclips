@@ -642,6 +642,8 @@ function kickChat(c,box){
 
 fetchGeo();
 fromHash();
+// The layout toggle sits at the far right of the category chips row, to save vertical space (Vin, Nov 8).
+(function(){var cr=h('div',{class:'chiprow'});$('chips').before(cr);cr.append($('chips'),$('view'))})();
 render();
 tryOpen();
 fetchVods();
