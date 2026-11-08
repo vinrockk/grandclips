@@ -75,27 +75,30 @@ function accGo(provider){
  ACC.sb.auth.signInWithOAuth({provider:provider,options:{redirectTo:location.origin+location.pathname}}).then(function(r){if(r.error)$('siderr').textContent='Couldn’t open '+(provider==='apple'?'Apple':'Google')+' sign-in. Try again.'})}
 // One sheet for both states: Google/Apple buttons when signed out, the profile when signed in.
 function signIn(why,then,item){ACC.why=why;ACC.pend=item?item.n:null;ACC.then=then||null;accSheet();var d=$('sid');if(!d.open)d.showModal()}
+function accX(){return h('button',{type:'button',class:'accx',id:'sidx','aria-label':'Close',onclick:accClose},[accSvg('<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',20)])}
 function accSheet(){var f=$('sidf');ACC.delArm=false;
  if(!ACC.prof){
-  f.replaceChildren(
-   h('h2',{id:'sidh',text:ACC.why&&ACC.why!=='Sign in'?ACC.why:'Sign in to GRANDCLIPS'}),
-   h('p',{id:'sidp',text:'One tap with Google or Apple. You get a random name and avatar, and your favorites are saved to your account.'}),
+  var lg=document.querySelector('.logo img');
+  f.replaceChildren(accX(),
+   h('div',{class:'acclogo'},[h('img',{src:lg?lg.src:'/logo.svg',alt:'GRANDCLIPS',width:'558',height:'84'})]),
+   h('h2',{id:'sidh',class:'sr',text:'Sign in to GRANDCLIPS'}),
+   h('p',{id:'sidp',class:'acctag',text:ACC.why&&ACC.why!=='Sign in'?ACC.why+'.':'Sign in or create an account to save your favorites.'}),
    h('div',{class:'accbtns'},[
     h('button',{type:'button',class:'accb google',onclick:function(){accGo('google')}},[accSvg(ACCI.google,20),document.createTextNode('Continue with Google')]),
     h('button',{type:'button',class:'accb apple',onclick:function(){accGo('apple')}},[accSvg(ACCI.apple,20),document.createTextNode('Continue with Apple')])]),
    h('div',{class:'err',id:'siderr','aria-live':'polite'}),
-   h('div',{class:'acts'},[h('button',{type:'button',class:'pill',id:'sidx',onclick:accClose,text:'Cancel'})]));
+   h('p',{class:'accfine',text:'New accounts get a random name and avatar.'}));
   return}
  var p=ACC.prof,inp=h('input',{id:'sidu',value:p.username,maxlength:'20',autocomplete:'off',autocapitalize:'off',spellcheck:'false','aria-describedby':'siderr'});
  var av=h('div',{class:'accav'},[AV.el(p.avatar_seed,96)]);
- f.replaceChildren(
+ f.replaceChildren(accX(),
   h('div',{class:'acchead'},[av,h('div',{},[h('h2',{id:'sidh',text:'@'+p.username}),h('button',{type:'button',class:'pill sm',onclick:accNewAvatar},[accSvg(ACCI.dice,16),document.createTextNode('New avatar')])])]),
   h('label',{for:'sidu',text:'Username'}),
   h('div',{class:'accname'},[inp,h('button',{type:'button',class:'pill sm',title:'Random name','aria-label':'Random name',onclick:function(){inp.value=accName(2);inp.focus()}},[accSvg(ACCI.dice,16)]),h('button',{type:'submit',class:'pill solid sm',text:'Save'})]),
   h('div',{class:'err',id:'siderr','aria-live':'polite'}),
   h('p',{class:'acchint',text:'Letters and underscores only, 3 to 20 characters.'}),
   h('div',{class:'acts accacts'},[h('button',{type:'button',class:'pill acckill',id:'acckill',onclick:accDelete,text:'Delete profile'}),h('span',{style:'flex:1'}),
-   h('button',{type:'button',class:'pill',onclick:accLogout,text:'Log out'}),h('button',{type:'button',class:'pill',id:'sidx',onclick:accClose,text:'Close'})]))}
+   h('button',{type:'button',class:'pill',onclick:accLogout,text:'Log out'})]))}
 function accClose(){ACC.then=null;ACC.pend=null;$('sid').close()}
 $('sidf').addEventListener('submit',function(e){e.preventDefault();if(!ACC.prof||ACC.busy)return;var u=$('sidu').value.trim().replace(/^@/,''),err=$('siderr');
  if(u===ACC.prof.username){err.textContent='';return}

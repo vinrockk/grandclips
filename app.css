@@ -246,3 +246,13 @@ div.frame iframe{display:block;width:100%;height:100%;border:0}
 .accacts{flex-wrap:wrap}
 .acckill{color:#FF8FA9;border-color:transparent;padding:0 8px}
 .acckill.arm{border-color:#FF8FA9}
+.sid{position:fixed}
+.sid h2#sidh{padding-right:44px}
+.accx{position:absolute;top:12px;right:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #3A3D47;background:#0E0F13;color:var(--text);cursor:pointer;z-index:1}
+.accx:hover{background:#22252D}
+.accx:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.accbtns+.err:empty{min-height:0;margin:0}
+.acclogo{display:flex;justify-content:center;margin:34px 0 18px}
+.acclogo img{width:min(100%,300px);height:auto}
+.acctag{text-align:center;font-size:18px;line-height:1.35;color:var(--text)!important;opacity:.8;margin:0 auto 22px!important;max-width:300px}
+.accfine{text-align:center;font-size:13px;margin:4px 0 0!important}
