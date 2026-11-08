@@ -3,7 +3,7 @@ var RNAME={d:'today',w:'this week',m:'this month',a:'of all time'};
 var HOST=location.hostname||'localhost';
 // Phones and tablets only allow videos inside embeds to start on their own when muted, so they start muted with a Tap to unmute button.
 var MOBILE=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
-var S={sec:'clips',sub:{clips:'foryou',videos:'foryou',streams:'live',threads:'hot',rankings:'favs'},filt:{streams:'All',threads:'All'},csrc:'All',period:'d',rper:'w',user:load('gc_user',null),tag:'All',q:'',qin:'all',saved:load('gc_saved',{}),chans:load('gc_chans',{}),hist:load('gc_hist',{}),open:null};
+var S={sec:'clips',sub:{clips:'foryou',videos:'foryou',streams:'live',threads:'hot',rankings:'favs'},filt:{streams:'All',threads:'All'},csrc:'All',period:'d',rper:'w',user:null,tag:'All',q:'',qin:'all',saved:load('gc_saved',{}),chans:load('gc_chans',{}),hist:load('gc_hist',{}),open:null};
 function $(id){return document.getElementById(id)}
 function h(tag,props,kids){var e=document.createElement(tag);props=props||{};for(var k in props){var v=props[k];if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}(kids||[]).forEach(function(c){if(c)e.append(c)});return e}
 function type(c){return c.ty||(c.n>300?'post':c.n>100?'stream':'video')}

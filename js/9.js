@@ -1,18 +1,9 @@
 function crownSvg(){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','18');sv.setAttribute('height','18');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('aria-hidden','true');sv.setAttribute('class','crown');pa.setAttribute('d','M3 7.5l4.6 4.1L12 4.5l4.4 7.1L21 7.5l-1.9 10.5H4.9z');pa.setAttribute('fill','#FFC23D');pa.setAttribute('stroke','#B8860B');pa.setAttribute('stroke-width','1.2');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function starSvg(filled){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','16');sv.setAttribute('height','16');sv.setAttribute('viewBox','0 0 16 16');sv.setAttribute('aria-hidden','true');pa.setAttribute('d','M8 1.2l2.05 4.25 4.65.62-3.4 3.22.86 4.61L8 11.65 3.84 13.9l.86-4.61-3.4-3.22 4.65-.62z');pa.setAttribute('fill',filled?'currentColor':'none');pa.setAttribute('stroke','currentColor');pa.setAttribute('stroke-width','1.6');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function saveBtn(){var on=!!S.saved[S.open.n];var b=$('save');b.replaceChildren(starSvg(on),document.createTextNode(on?'In favorites':'Add to favorites'));b.setAttribute('aria-pressed',String(on));b.className='pill'+(on?' solid':'')}
-function toggleFav(c){var on=!S.saved[c.n];if(on){S.saved[c.n]=Date.now();RC.fav(c)}else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
-$('save').onclick=function(){var c=S.open;if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',function(){if(!S.saved[c.n])toggleFav(c)});return}toggleFav(c)};
-var SID={then:null};
-function signIn(why,then){SID.then=then||null;var d=$('sid');
- if(S.user){$('sidh').textContent='Signed in as @'+S.user;$('sidp').textContent='Your favorites count toward the Rankings. Test accounts are saved on this device until real accounts are connected.';$('sidin').hidden=true;$('sidok').textContent='Sign out';$('sidx').textContent='Close'}
- else{$('sidh').textContent=why||'Sign in';$('sidp').textContent='You need an account to favorite, so the rankings can’t be spammed. For this test, just pick a username.';$('sidin').hidden=false;$('sidok').textContent='Sign in';$('sidx').textContent='Cancel';$('sidu').value='';$('siderr').textContent=''}
- d.showModal();if(!S.user)$('sidu').focus()}
-$('sidf').addEventListener('submit',function(e){e.preventDefault();
- if(S.user){S.user=null;try{localStorage.removeItem('gc_user')}catch(x){}$('sid').close();render();toast('Signed out');return}
- var u=$('sidu').value.trim().replace(/^@/,'');if(!/^[A-Za-z0-9_]{3,20}$/.test(u)){$('siderr').textContent='Use 3 to 20 letters, numbers or underscores.';$('sidu').focus();return}
- S.user=u;store('gc_user',u);$('sid').close();render();toast('Signed in as @'+u);var t=SID.then;SID.then=null;if(t)t()});
-$('sidx').onclick=function(){SID.then=null;$('sid').close()};
+function toggleFav(c){var on=!S.saved[c.n];if(on){S.saved[c.n]=Date.now();RC.fav(c)}else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(typeof accFav==='function')accFav(c,on);if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
+$('save').onclick=function(){var c=S.open;if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',null,c);return}toggleFav(c)};
+// Sign-in and the profile sheet live in account.js.
 function ttSound(){var f=$('player').querySelector('iframe');if(!f||!S.open||S.open.p!=='TikTok')return;(MOBILE&&!S.unmuted?['mute','play']:['play','unMute']).forEach(function(t){f.contentWindow.postMessage({'x-tiktok-player':true,type:t},'*')})}
 window.addEventListener('message',function(e){var host='';try{host=new URL(e.origin).hostname}catch(x){}if(!/(^|\.)tiktok\.com$/.test(host))return;var d=e.data;if(typeof d==='string'){try{d=JSON.parse(d)}catch(x){return}}if(d&&d.type==='onPlayerReady')ttSound();if(d&&d.type==='onStateChange'&&d.value===0&&S.open&&S.open.p==='TikTok')ended(S.open)});
 window.addEventListener('message',function(e){var host='';try{host=new URL(e.origin).hostname}catch(x){}if(!/(^|\.)youtube(-nocookie)?\.com$/.test(host))return;if(ytEnded(e.data)&&S.open&&S.open.p==='YouTube')ended(S.open)});
@@ -49,3 +40,17 @@ function ytListen(fr){try{fr.contentWindow.postMessage(JSON.stringify({event:'li
 var TW={state:0,cbs:[]};
 function twitchScript(cb){if(window.Twitch&&Twitch.Player)return cb(true);TW.cbs.push(cb);if(TW.state)return;TW.state=1;var sc=document.createElement('script');sc.src='https://player.twitch.tv/js/embed/v1.js';sc.async=true;
  sc.onload=function(){var l=TW.cbs;TW.cbs=[];TW.state=0;l.forEach(function(f){f(!!(window.Twitch&&Twitch.Player))})};sc.onerror=function(){var l=TW.cbs;TW.cbs=[];TW.state=0;l.forEach(function(f){f(false)})};document.head.append(sc)}
+function twitchPlayer(c){
+ var box=h('div',{class:'frame wide',id:'twp'});$('player').replaceChildren(box);
+ twitchScript(function(ok){if(S.open!==c||!document.getElementById('twp'))return;
+  if(!ok){$('player').replaceChildren(h('iframe',{class:'frame wide',src:embedUrl(c),allow:'autoplay; encrypted-media; fullscreen; picture-in-picture',allowfullscreen:'',title:c.t}));return}
+  var o={width:'100%',height:'100%',parent:[HOST],autoplay:true,muted:MOBILE};if(c.vod)o.video='v'+c.vod;else o.channel=c.ch;
+  var pl=TW.pl=new Twitch.Player('twp',o),played=false;
+  pl.addEventListener(Twitch.Player.PLAYING,function(){played=true});
+  pl.addEventListener(Twitch.Player.ENDED,function(){ended(c)});
+  pl.addEventListener(Twitch.Player.OFFLINE,function(){if(played)ended(c)});
+ });
+}
+// Kick clips: Kick's clip files play in a plain video player (HLS through hls.js where the browser can't play it natively).
+var HLS={state:0,cbs:[]};
+function hlsScript(cb){if(window.Hls)return cb(true);HLS.cbs.push(cb);if(HLS.state)return;HLS.state=1;var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js';sc.async=true;sc.onload=function(){var l=HLS.cbs;HLS.cbs=[];HLS.state=0;l.forEach(function(f){f(!!window.Hls)})};sc.onerror=function(){var l=HLS.cbs;HLS.cbs=[];HLS.state=0;l.forEach(function(f){f(false)})};document.head.append(sc)}

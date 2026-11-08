@@ -43,7 +43,7 @@ function card(c,rank){
 function render(){
  CARDTALL=null;var SR=searching();
  $('primary').replaceChildren.apply($('primary'),SECS.map(function(s){return h('button',{class:'pri'+(S.sec===s[0]?' on':''),'aria-current':S.sec===s[0]?'page':'false',onclick:function(){go(s[0])}},[s[0]==='streams'?h('span',{class:'dot','aria-hidden':'true'}):s[0]==='rankings'?crownSvg():null,document.createTextNode(s[1])])}));
- var si=$('signin');si.textContent=S.user?'@'+S.user:'Sign in';si.setAttribute('aria-label',S.user?'Signed in as @'+S.user+'. Account options':'Sign in');
+ if(typeof accHeader==='function')accHeader();
  var n=allItems().filter(function(c){return S.saved[c.n]}).length;$('wlc').textContent=n;$('wl').className='pill'+(S.sec==='watchlist'?' on':'');
  $('q').placeholder={clips:'Search anything…',videos:'Search anything…',streams:'Search anything…',threads:'Search anything…',watchlist:'Search your favorites…',rankings:S.sub.rankings==='creators'?'Search creators…':'Search clips…'}[S.sec];
  var subs=SUBS[S.sec]||[];

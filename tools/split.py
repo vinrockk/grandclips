@@ -21,7 +21,7 @@ for i,c in enumerate(chunks):
     tags.append('<script src="/%s?v=%s"></script>'%(n,hashlib.sha1(b).hexdigest()[:8]))
 h=open(d+'index.html',encoding='utf-8').read()
 h=re.sub(r'(<script src="/js/\d+\.js\?v=\w+"></script>\n)+','\n'.join(tags)+'\n',h)
-for x in ['app.css','swipe.js','swipe.css']:
+for x in ['app.css','swipe.js','swipe.css','avatar.js','account.js']:
     v=hashlib.sha1(open(d+x,'rb').read()).hexdigest()[:8];h=re.sub(r'/'+re.escape(x)+r'\?v=\w+','/'+x+'?v='+v,h)
 open(d+'index.html','w',encoding='utf-8').write(h)
 print(len(chunks),'script files written')

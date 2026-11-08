@@ -10,3 +10,15 @@ GTA 6 clips, videos, live streams and posts from every platform in one place.
 ## Environment variables (set in Vercel, never in this repo)
 
 `YT_API_KEY`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `BSKY_HANDLE`, `BSKY_APP_PASSWORD`, and optionally `MEDAL_API_KEY`, `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET`.
+
+## Accounts
+
+Sign-in is Google and Apple only, through Supabase Auth (account.js, avatar.js, api/config.js).
+
+1. Run `supabase/schema.sql` once in the Supabase SQL Editor (profiles, favorites, row-level security, `delete_me()`).
+2. Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` in Vercel environment variables, then redeploy.
+3. In Supabase Authentication: set the Site URL and redirect URLs to the site's address, and turn on the Google and Apple providers.
+
+Until step 2 is done the sign-in sheet says sign-in isn't switched on yet; the rest of the site works.
+Usernames are random two-word names with no numbers (NAME_A × NAME_B in account.js), unique ignoring capitals.
+Avatars are drawn from `profiles.avatar_seed`; there are no uploads.

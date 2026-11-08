@@ -228,3 +228,21 @@ div.frame iframe{display:block;width:100%;height:100%;border:0}
 @media (max-width:640px){.pri{padding:0 6px}.primary{gap:2px}}
 /* Site-wide search results: one block per kind of content */
 .sres{display:flex;flex-direction:column;gap:14px}.sgh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}.sgh .wlh{margin:0}.sres>.grid{margin-bottom:14px}
+/* Accounts (account.js): Google/Apple buttons, profile sheet, avatar in the header */
+.av-img{display:inline-flex;line-height:0;flex:none}
+.av-img svg{display:block;border-radius:24%}
+.accpill{padding:0 12px 0 5px}
+@media (max-width:1360px){.accpill{padding:0 5px}}
+.accbtns{display:flex;flex-direction:column;gap:10px;margin:4px 0 6px}
+.accb{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;border-radius:999px;border:1px solid var(--line);font:600 16px Inter,system-ui,sans-serif;cursor:pointer}
+.accb.google{background:#fff;color:#1F1F1F;border-color:#fff}
+.accb.apple{background:#000;color:#fff;border-color:#3A3D47}
+.accb:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
+.acchead{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.acchead h2{word-break:break-all}
+.accname{display:flex;gap:8px;align-items:center}
+.accname input{flex:1;min-width:0}
+.acchint{font-size:13px;margin:0 0 14px!important}
+.accacts{flex-wrap:wrap}
+.acckill{color:#FF8FA9;border-color:transparent;padding:0 8px}
+.acckill.arm{border-color:#FF8FA9}

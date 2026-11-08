@@ -55,7 +55,7 @@ function swToggleSound(){SW.muted=!SW.muted;SW.chk=null;store('gc_swmute',SW.mut
  else if(fr&&(c.p==='YouTube'||c.p==='TikTok'))swSound(fr,c,SW.muted);
  else if(fr)fr.src=swEmbed(c);
  toast(SW.muted?'Sound off':'Sound on')}
-function swFav(c,b){if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',function(){if(!S.saved[c.n])toggleFav(c);swFavBtn(c,b)});return}toggleFav(c);swFavBtn(c,b)}
+function swFav(c,b){if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',null,c);return}toggleFav(c);swFavBtn(c,b)}
 function swFavBtn(c,b){var on=!!S.saved[c.n];b.replaceChildren(swIcon(SWI.star,28,on),h('span',{text:fmt(favs(c).a)}));b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'In favorites':'Add to favorites')}
 function swSlide(c,i){
  var u=thumbUrl(c),bg=u?h('img',{class:'swbg',alt:'',loading:'lazy',src:u}):null;if(bg)bg.onerror=function(){bg.remove()};

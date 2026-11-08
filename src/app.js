@@ -128,7 +128,7 @@ var RNAME={d:'today',w:'this week',m:'this month',a:'of all time'};
 var HOST=location.hostname||'localhost';
 // Phones and tablets only allow videos inside embeds to start on their own when muted, so they start muted with a Tap to unmute button.
 var MOBILE=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
-var S={sec:'clips',sub:{clips:'foryou',videos:'foryou',streams:'live',threads:'hot',rankings:'favs'},filt:{streams:'All',threads:'All'},csrc:'All',period:'d',rper:'w',user:load('gc_user',null),tag:'All',q:'',qin:'all',saved:load('gc_saved',{}),chans:load('gc_chans',{}),hist:load('gc_hist',{}),open:null};
+var S={sec:'clips',sub:{clips:'foryou',videos:'foryou',streams:'live',threads:'hot',rankings:'favs'},filt:{streams:'All',threads:'All'},csrc:'All',period:'d',rper:'w',user:null,tag:'All',q:'',qin:'all',saved:load('gc_saved',{}),chans:load('gc_chans',{}),hist:load('gc_hist',{}),open:null};
 function $(id){return document.getElementById(id)}
 function h(tag,props,kids){var e=document.createElement(tag);props=props||{};for(var k in props){var v=props[k];if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}(kids||[]).forEach(function(c){if(c)e.append(c)});return e}
 function type(c){return c.ty||(c.n>300?'post':c.n>100?'stream':'video')}
@@ -352,7 +352,7 @@ function card(c,rank){
 function render(){
  CARDTALL=null;var SR=searching();
  $('primary').replaceChildren.apply($('primary'),SECS.map(function(s){return h('button',{class:'pri'+(S.sec===s[0]?' on':''),'aria-current':S.sec===s[0]?'page':'false',onclick:function(){go(s[0])}},[s[0]==='streams'?h('span',{class:'dot','aria-hidden':'true'}):s[0]==='rankings'?crownSvg():null,document.createTextNode(s[1])])}));
- var si=$('signin');si.textContent=S.user?'@'+S.user:'Sign in';si.setAttribute('aria-label',S.user?'Signed in as @'+S.user+'. Account options':'Sign in');
+ if(typeof accHeader==='function')accHeader();
  var n=allItems().filter(function(c){return S.saved[c.n]}).length;$('wlc').textContent=n;$('wl').className='pill'+(S.sec==='watchlist'?' on':'');
  $('q').placeholder={clips:'Search anything…',videos:'Search anything…',streams:'Search anything…',threads:'Search anything…',watchlist:'Search your favorites…',rankings:S.sub.rankings==='creators'?'Search creators…':'Search clips…'}[S.sec];
  var subs=SUBS[S.sec]||[];
@@ -503,18 +503,9 @@ function openItem(c){
 function crownSvg(){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','18');sv.setAttribute('height','18');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('aria-hidden','true');sv.setAttribute('class','crown');pa.setAttribute('d','M3 7.5l4.6 4.1L12 4.5l4.4 7.1L21 7.5l-1.9 10.5H4.9z');pa.setAttribute('fill','#FFC23D');pa.setAttribute('stroke','#B8860B');pa.setAttribute('stroke-width','1.2');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function starSvg(filled){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','16');sv.setAttribute('height','16');sv.setAttribute('viewBox','0 0 16 16');sv.setAttribute('aria-hidden','true');pa.setAttribute('d','M8 1.2l2.05 4.25 4.65.62-3.4 3.22.86 4.61L8 11.65 3.84 13.9l.86-4.61-3.4-3.22 4.65-.62z');pa.setAttribute('fill',filled?'currentColor':'none');pa.setAttribute('stroke','currentColor');pa.setAttribute('stroke-width','1.6');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function saveBtn(){var on=!!S.saved[S.open.n];var b=$('save');b.replaceChildren(starSvg(on),document.createTextNode(on?'In favorites':'Add to favorites'));b.setAttribute('aria-pressed',String(on));b.className='pill'+(on?' solid':'')}
-function toggleFav(c){var on=!S.saved[c.n];if(on){S.saved[c.n]=Date.now();RC.fav(c)}else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
-$('save').onclick=function(){var c=S.open;if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',function(){if(!S.saved[c.n])toggleFav(c)});return}toggleFav(c)};
-var SID={then:null};
-function signIn(why,then){SID.then=then||null;var d=$('sid');
- if(S.user){$('sidh').textContent='Signed in as @'+S.user;$('sidp').textContent='Your favorites count toward the Rankings. Test accounts are saved on this device until real accounts are connected.';$('sidin').hidden=true;$('sidok').textContent='Sign out';$('sidx').textContent='Close'}
- else{$('sidh').textContent=why||'Sign in';$('sidp').textContent='You need an account to favorite, so the rankings can’t be spammed. For this test, just pick a username.';$('sidin').hidden=false;$('sidok').textContent='Sign in';$('sidx').textContent='Cancel';$('sidu').value='';$('siderr').textContent=''}
- d.showModal();if(!S.user)$('sidu').focus()}
-$('sidf').addEventListener('submit',function(e){e.preventDefault();
- if(S.user){S.user=null;try{localStorage.removeItem('gc_user')}catch(x){}$('sid').close();render();toast('Signed out');return}
- var u=$('sidu').value.trim().replace(/^@/,'');if(!/^[A-Za-z0-9_]{3,20}$/.test(u)){$('siderr').textContent='Use 3 to 20 letters, numbers or underscores.';$('sidu').focus();return}
- S.user=u;store('gc_user',u);$('sid').close();render();toast('Signed in as @'+u);var t=SID.then;SID.then=null;if(t)t()});
-$('sidx').onclick=function(){SID.then=null;$('sid').close()};
+function toggleFav(c){var on=!S.saved[c.n];if(on){S.saved[c.n]=Date.now();RC.fav(c)}else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(typeof accFav==='function')accFav(c,on);if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
+$('save').onclick=function(){var c=S.open;if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',null,c);return}toggleFav(c)};
+// Sign-in and the profile sheet live in account.js.
 function ttSound(){var f=$('player').querySelector('iframe');if(!f||!S.open||S.open.p!=='TikTok')return;(MOBILE&&!S.unmuted?['mute','play']:['play','unMute']).forEach(function(t){f.contentWindow.postMessage({'x-tiktok-player':true,type:t},'*')})}
 window.addEventListener('message',function(e){var host='';try{host=new URL(e.origin).hostname}catch(x){}if(!/(^|\.)tiktok\.com$/.test(host))return;var d=e.data;if(typeof d==='string'){try{d=JSON.parse(d)}catch(x){return}}if(d&&d.type==='onPlayerReady')ttSound();if(d&&d.type==='onStateChange'&&d.value===0&&S.open&&S.open.p==='TikTok')ended(S.open)});
 window.addEventListener('message',function(e){var host='';try{host=new URL(e.origin).hostname}catch(x){}if(!/(^|\.)youtube(-nocookie)?\.com$/.test(host))return;if(ytEnded(e.data)&&S.open&&S.open.p==='YouTube')ended(S.open)});
