@@ -74,7 +74,7 @@ function render(){
   tags.forEach(function(t){chips.append(h('button',{class:'chip'+(S.tag===t?' on':''),'aria-pressed':String(S.tag===t),text:t,onclick:function(){S.tag=t;if(t!=='All')bump([t],1);render()}}))});
   if(S.tag!=='All')intro.append(h('div',{class:'intro'},[h('small',{text:'Tag page · grandclips.com/tag/'+S.tag.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-')}),document.createTextNode(INTRO[S.tag]||'')]));
  } else if(FILTERS[S.sec]){
-  if(S.sec==='streams'&&sub==='live')intro.append(h('div',{class:'outs'},[document.createTextNode('Also live:'),h('a',{href:'https://www.tiktok.com/search/live?q=gta',target:'_blank',rel:'noopener'},[logo('TikTok',16),document.createTextNode('TikTok LIVE')]),h('a',{href:'https://www.facebook.com/search/videos/?q=gta%20live',target:'_blank',rel:'noopener'},[logo('Facebook',16),document.createTextNode('Facebook Gaming')])]));
+  // No "Also live" links to TikTok LIVE or Facebook Gaming (Vin, Nov 8): neither can be embedded, and the site keeps viewers on-site.
  }
  if(S.sec==='rankings')intro.append(h('p',{class:'meta',style:'margin:0 0 16px',text:'Test numbers: rankings use stand-in counts until real accounts are connected. Your own favorites are added on top.'}));
  if(S.sec==='rankings'){var g0=$('grid');g0.className='grid';g0.replaceChildren(renderRank());var hs0=toHash();if(location.hash!==hs0){try{history.replaceState(null,'',hs0)}catch(e){}}return}
