@@ -1,6 +1,6 @@
 function load(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
-// Layout for clip and stream thumbnails: 4 per row (default) or 6 per row (Vin, Nov 8; List view removed). Remembered on this device.
+// Layout for clip and stream thumbnails: 4 per row (default) or 6 per row (Vin, Nov 8; List view removed; icons only, no text). Remembered on this device.
 var VIEW=load('gc_view',{m:'cols'});if(['grid','cols'].indexOf(VIEW.m)<0)VIEW={m:'cols'};
 var VIEWSECS=['clips','videos','streams','watchlist'];
 // Fixed counts on wide screens; on narrow screens each mode keeps a minimum thumbnail width (phones: 2 and 3 per row).
@@ -12,7 +12,7 @@ function viewIcon(k){var ns='http://www.w3.org/2000/svg',sv=document.createEleme
  var r={list:[[1,2,5,4],[7,2.5,8,1.2],[7,4.6,5,1.2],[1,10,5,4],[7,10.5,8,1.2],[7,12.6,5,1.2]],cols:[[1,1,6,6],[9,1,6,6],[1,9,6,6],[9,9,6,6]],grid:[[1,3,3,4],[5,3,2.6,4],[8.4,3,2.6,4],[12,3,3,4],[1,9,3,4],[5,9,2.6,4],[8.4,9,2.6,4],[12,9,3,4]]}[k];
  r.forEach(function(a){var e=document.createElementNS(ns,'rect');e.setAttribute('x',a[0]);e.setAttribute('y',a[1]);e.setAttribute('width',a[2]);e.setAttribute('height',a[3]);e.setAttribute('rx','1');e.setAttribute('fill','currentColor');sv.append(e)});return sv}
 function viewCtl(){var box=$('view');var on=VIEWSECS.indexOf(S.sec)>=0||searching();box.hidden=!on;if(!on)return;
- function seg(k,label){var act=VIEW.m===k;return h('button',{type:'button',class:'vbtn'+(act?' on':''),'aria-pressed':String(act),title:label,onclick:function(){if(VIEW.m===k)return;VIEW.m=k;store('gc_view',VIEW);render()}},[viewIcon(k),h('span',{class:'vl',text:label})])}
+ function seg(k,label){var act=VIEW.m===k;return h('button',{type:'button',class:'vbtn'+(act?' on':''),'aria-pressed':String(act),title:label,'aria-label':label,onclick:function(){if(VIEW.m===k)return;VIEW.m=k;store('gc_view',VIEW);render()}},[viewIcon(k)])}
  var kids=[h('div',{class:'vseg',role:'group','aria-label':'Layout'},tallView()?(phone()?[seg('cols','2 per row'),seg('grid','4 per row')]:[seg('cols','6 per row'),seg('grid','10 per row')]):[seg('cols','4 per row'),seg('grid','6 per row')])];
  box.replaceChildren.apply(box,kids)}
 function applyView(g,force){if(!force&&VIEWSECS.indexOf(S.sec)<0)return;g.classList.add('cols');var n=viewCols(g.classList.contains('tallg'));g.style.gridTemplateColumns='repeat('+n+',minmax(0,1fr))';g.style.setProperty('--n',n)}
