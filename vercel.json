@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/kclips/:path*", "destination": "https://clips.kick.com/:path*" }
+  ]
+}

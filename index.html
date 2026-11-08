@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>GRANDCLIPS.COM test</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0E0F13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="GrandClips">
+<meta name="application-name" content="GrandClips">
+<link rel="stylesheet" href="/app.css?v=8c58e012">
+<style>/* Phones: keep the Rankings crown (Vin, Nov 8) and tighten the tabs so they still fit */@media (max-width:640px){.pri .crown{display:block;width:14px;height:14px}.pri{padding:0 4px;gap:5px}}</style>
+<link rel="stylesheet" href="/swipe.css?v=9dfa5953">
+</head>
+<body>
+<header><div class="wrap">
+<div class="bar">
+<a class="logo" href="#" id="home" aria-label="GrandClips home"><img src="/logo.svg" alt="GRANDCLIPS" width="213" height="32"></a>
+<nav class="primary" id="primary" aria-label="Main sections"></nav>
+<div class="search"><label class="sr" for="q">Search</label><input id="q" type="search" autocomplete="off"></div>
+<div class="right"><button class="pill" id="wl" aria-label="Favorites"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.2l2.05 4.25 4.65.62-3.4 3.22.86 4.61L8 11.65 3.84 13.9l.86-4.61-3.4-3.22 4.65-.62z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="lbl">Favorites</span><span class="count" id="wlc">0</span></button><button class="pill" id="signin">Sign in</button></div>
+</div>
+<nav class="sub" id="subnav" aria-label="Section views"></nav>
+</div></header>
+<main class="wrap">
+<section class="feat" id="feat" aria-roledescription="carousel" aria-label="Featured"></section>
+<p class="featcta" id="featcta" hidden>Want your clip, channel or stream featured here? <button type="button" id="getfeat">Get in touch</button></p>
+<div class="head"><div><h1 id="h1"></h1><p class="lead" id="lead"></p></div><div class="hr"><p class="meta" id="cnt"></p><div class="viewctl" id="view" hidden></div></div></div>
+<div class="row" id="period"></div>
+<div class="chips srow" id="srcrow" role="group" aria-label="Source"></div>
+<div class="chips" id="chips" role="group" aria-label="Filter"></div>
+<div id="intro"></div>
+<div class="grid" id="grid"></div>
+</main>
+<footer><div class="wrap foot">
+<form id="nl"><label for="em">Get the 10 best GTA 6 clips every Monday</label><div class="in"><input id="em" type="email" placeholder="you@email.com" required><button class="pill solid">Subscribe</button></div></form>
+<div><a href="#" id="plus">Go ad-free with GRANDCLIPS+</a><br>Unofficial fan site. Not affiliated with Rockstar Games or Take-Two Interactive.<br>Clips, streams and posts are embedded from their platforms and belong to their creators.</div>
+</div></footer>
+<dialog id="lb" aria-label="Player">
+<button class="close" id="close" aria-label="Close">×</button>
+<div class="lb" id="lbbox">
+<div class="lbmain"><div id="player"></div>
+<div class="upbar" id="upbar" hidden aria-live="polite"><div class="ut"><span class="meta" id="upwhen">Up next</span><b id="uptitle"></b></div><div class="acts"><button type="button" class="pill solid sm" id="upgo">Play now</button><button type="button" class="pill sm" id="upno">Cancel</button></div></div>
+<div class="info"><div><h2 id="lt"></h2><div class="meta" id="lm"></div></div><div class="acts"><button class="pill solid" id="unm" type="button" hidden>🔇 Tap to unmute</button><button class="pill" id="save"></button><button class="pill" id="nextb" type="button">Next ▶</button><button class="pill" id="autob" type="button"></button><a class="pill" id="src" target="_blank" rel="noopener"></a></div></div>
+<div class="tags" id="ltags"></div></div>
+<aside class="next"><div id="chat" class="chatbox"></div><h3 id="nexth">Up next</h3><div id="upnext" style="display:flex;flex-direction:column;gap:12px"></div></aside>
+</div>
+</dialog>
+<dialog id="sid" class="sid" aria-labelledby="sidh">
+<form id="sidf" method="dialog" novalidate>
+<h2 id="sidh">Sign in</h2>
+<p id="sidp">Sign in to add favorites. One account, one favorite per clip keeps the rankings fair.</p>
+<div id="sidin"><label for="sidu">Username</label><input id="sidu" autocomplete="username" maxlength="20" placeholder="e.g. vicecityfan"><div class="err" id="siderr" aria-live="polite"></div></div>
+<div class="acts"><button type="button" class="pill" id="sidx">Cancel</button><button type="submit" class="pill solid" id="sidok">Sign in</button></div>
+</form>
+</dialog>
+<div class="a2hs" id="a2hs" hidden role="region" aria-label="Install GRANDCLIPS"><img src="/icon-192.png" alt="" width="44" height="44"><div class="a2t"><b>Get GRANDCLIPS on your home screen</b><span id="a2msg"></span></div><button type="button" class="pill solid sm" id="a2go" hidden>Install</button><button type="button" class="a2x" id="a2x" aria-label="Not now">×</button></div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/js/1.js?v=41c07828"></script>
+<script src="/js/2.js?v=73bd0817"></script>
+<script src="/js/3.js?v=c5fa1c33"></script>
+<script src="/js/4.js?v=d7f0e1b3"></script>
+<script src="/js/5.js?v=37b5843b"></script>
+<script src="/js/6.js?v=3e923642"></script>
+<script src="/js/7.js?v=a93da9b8"></script>
+<script src="/js/8.js?v=5b798d1c"></script>
+<script src="/js/9.js?v=be4adc79"></script>
+<script src="/js/10.js?v=95b094f3"></script>
+<script src="/js/11.js?v=2556d8c6"></script>
+<script src="/swipe.js?v=35ef55c9"></script>
+</body>
+</html>
