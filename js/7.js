@@ -1,3 +1,36 @@
+function searching(){return !!S.q.trim()&&['clips','videos','streams','threads'].indexOf(S.sec)>=0}
+function searchGroups(){var q=S.q.trim(),w=qWords(q);
+ function strong(c){var t=' '+fold((c.t||'')+' '+who(c)+' '+(c.name||'')).replace(/[^\p{L}\p{N}]+/gu,' ');return w.every(function(x){return t.indexOf(' '+x)>=0})?1:0}
+ function pop(c){return (c.viewers||0)*50+(c.views||c.v||0)+(c.score||0)*20}
+ function rank(l,liveFirst){return l.map(function(c){return [c,(liveFirst&&c.kind==='live'?2:0)+strong(c),pop(c)]}).sort(function(a,b){return (b[1]-a[1])||(b[2]-a[2])}).map(function(x){return x[0]})}
+ var seen={},st=(LIVE||[]).concat(STREAMS).filter(function(c){if(seen[c.n])return false;seen[c.n]=1;return true});
+ return [['clips','Clips',rank(VIDEOS.filter(function(c){return isShort(c)&&match(c,q)})),12],
+  ['videos','Videos',rank(VIDEOS.filter(function(c){return !isShort(c)&&match(c,q)})),8],
+  ['streams','Streams',rank(st.filter(function(c){return match(c,q)}),true),8],
+  ['threads','Threads',rank(POSTS.filter(function(c){return match(c,q)})),6]]}
+function renderSearch(){
+ if(Date.now()-LIVE_AT>60000&&!fetchLive.busy){fetchLive.busy=1;setTimeout(function(){fetchLive.busy=0},60000);fetchLive()}
+ var gs=searchGroups(),tot=gs.reduce(function(s,x){return s+x[2].length},0),q=S.q.trim();
+ if(S.qin!=='all'&&!gs.some(function(x){return x[0]===S.qin}))S.qin='all';
+ var chips=$('chips');chips.replaceChildren();
+ [['all','All',tot]].concat(gs.map(function(x){return [x[0],x[1],x[2].length]})).forEach(function(x){var on=S.qin===x[0];chips.append(h('button',{class:'chip'+(on?' on':''),'aria-pressed':String(on),text:x[1]+' '+x[2].toLocaleString(),onclick:function(){S.qin=x[0];render();window.scrollTo(0,0)}}))});
+ var g=$('grid');g.replaceChildren();g.style.gridTemplateColumns='';
+ if(S.qin==='all'){
+  $('cnt').textContent=tot.toLocaleString()+(tot===1?' result':' results')+' for “'+q+'”';
+  g.className='sres';
+  if(!tot){g.append(h('div',{class:'empty',text:'Nothing matches “'+q+'” yet. Try fewer words or a different spelling.'}));return}
+  gs.forEach(function(x){if(!x[2].length)return;
+   var more=x[2].length>x[3];
+   g.append(h('div',{class:'sgh'},[h('h2',{class:'wlh',text:x[1]+' · '+x[2].length.toLocaleString()}),more?h('button',{class:'chip',type:'button',text:'See all',onclick:function(){S.qin=x[0];render();window.scrollTo(0,0)}}):null]));
+   var sg=h('div',{class:'grid'+(x[0]==='clips'?' tallg':'')+(x[0]==='threads'?' posts':'')});if(x[0]!=='threads')applyView(sg,true);
+   CARDTALL=x[0]==='clips';x[2].slice(0,x[3]).forEach(function(c){sg.append(card(c,0))});g.append(sg)});
+  CARDTALL=null;return}
+ var grp=gs.filter(function(x){return x[0]===S.qin})[0],l=grp[2];
+ $('cnt').textContent=l.length.toLocaleString()+' '+{clips:'clip',videos:'video',streams:'stream',threads:'post'}[S.qin]+' result'+(l.length===1?'':'s')+' for “'+q+'”';
+ g.className='grid'+(S.qin==='clips'?' tallg':'')+(S.qin==='threads'?' posts mason':'');if(S.qin!=='threads')applyView(g,true);
+ CARDTALL=S.qin==='clips';
+ if(!l.length){g.append(h('div',{class:'empty',text:'No '+grp[1].toLowerCase()+' match “'+q+'”.'}));return}
+ var vk='search|'+S.qin+'|'+q;if(vk!==VIEWKEY){VIEWKEY=vk;SHOW=PAGE}GRID={l:l,ranked:false,shown:0};moreGrid(SHOW)}
 function go(sec){if(isVid(sec)&&(CSRC_BY[sec]||[]).indexOf(S.csrc)<0)S.csrc='All';if((sec==='streams'||sec==='rankings')&&Date.now()-LIVE_AT>60000)fetchLive();S.sec=sec;S.q='';S.qin='all';$('q').value='';render();window.scrollTo(0,0)}
 function card(c,rank){
  if(type(c)==='post')return h('button',{class:'post',type:'button',onclick:function(){openItem(c)}},[h('div',{class:'ph'},[h('span',{class:'src',title:srcName(c),role:'img','aria-label':srcName(c)},[logo(srcKey(c),14)]),h('span',{text:who(c)+(c.pub?' · '+ago(c.pub):'')}),rank?h('span',{class:'rank',style:'position:static;margin-left:auto',text:'#'+rank}):null,S.saved[c.n]?h('span',{class:'saved',style:'position:static',text:'★ Favorite'}):null]),c.p==='News'&&c.thumb?h('img',{class:'ptimg',src:c.thumb,alt:'',loading:'lazy'}):null,h('div',{class:'ptext',text:c.t})]);

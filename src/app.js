@@ -171,6 +171,35 @@ function vmeta(c){var a=[who(c)];if(c.views!=null)a.push(fmt(c.views)+' views');
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(function(){t.classList.remove('show')},2600)}
 function bump(tags,w){(tags||[]).forEach(function(t){S.hist[t]=(S.hist[t]||0)+w});store('gc_hist',S.hist)}
 function topTags(){return Object.keys(S.hist).sort(function(a,b){return S.hist[b]-S.hist[a]}).slice(0,3)}
+// For you (Vin, Nov 8): a YouTube-style recommender that learns each viewer's taste on their own device (no account needed).
+// Signals: what they open and how long they watch it, quick skips in swipe mode, favorites, searches and tag taps,
+// rolled up into the creators, tags and platforms they like. Old interest fades (halves every 2 weeks).
+// Ranking mixes that taste with what's trending, fresh and popular, pushes down things they've already seen,
+// avoids the same creator back to back, and reshuffles a little each day so the page doesn't go stale.
+var RC={P:load('gc_prof',null),cur:null};
+(function(){var P=RC.P;if(!P||!P.c)P=RC.P={c:{},p:{},seen:{},n:0,at:Date.now()};
+ var k=Math.pow(0.5,(Date.now()-(P.at||Date.now()))/(14*864e5));if(k<0.999){['c','p'].forEach(function(m){for(var x in P[m]){P[m][x]*=k;if(Math.abs(P[m][x])<0.05)delete P[m][x]}});for(var t in S.hist){S.hist[t]*=k;if(S.hist[t]<0.05)delete S.hist[t]}P.n*=k;store('gc_hist',S.hist)}
+ P.at=Date.now()})();
+RC.save=function(){var P=RC.P,ks=Object.keys(P.seen);if(ks.length>1500){ks.sort(function(a,b){return P.seen[a][0]-P.seen[b][0]});ks.slice(0,ks.length-1200).forEach(function(x){delete P.seen[x]})}P.at=Date.now();store('gc_prof',P)};
+RC.add=function(c,w,tagW){var P=RC.P,cr=creatorOf(c);if(cr)P.c[cr.k]=(P.c[cr.k]||0)+w;var sk=srcKey(c);P.p[sk]=(P.p[sk]||0)+w*0.3;if(tagW)bump(c.tags,tagW);P.n+=Math.abs(w)};
+// start: something began playing (opened, or reached in swipe mode). stop: credit the watch time.
+RC.start=function(c,how){RC.stop();if(!c||type(c)==='post')return;RC.cur={c:c,t:Date.now(),how:how};var e=RC.P.seen[c.n]||[0,0,0];e[0]=Date.now();if(how==='open'){e[2]++;RC.add(c,1,0)}RC.P.seen[c.n]=e;RC.save()};
+RC.stop=function(){var x=RC.cur;RC.cur=null;if(!x)return;var sec=Math.min(180,(Date.now()-x.t)/1000),e=RC.P.seen[x.c.n];if(e)e[1]+=sec;
+ if(x.how==='swipe'&&sec<2.5)RC.add(x.c,-0.4,0);else if(sec>=3)RC.add(x.c,Math.min(3,sec/20),Math.min(2,sec/40));RC.save()};
+RC.fav=function(c){RC.add(c,5,3);RC.save()};
+RC.rank=function(l){if(l.length<2)return l;var P=RC.P,now=Date.now(),day=Math.floor(now/864e5);
+ function mx(o){var m=1;for(var x in o)m=Math.max(m,Math.abs(o[x]));return m}
+ var mt=mx(S.hist),mc=mx(P.c),mp=mx(P.p),str=Math.min(1,P.n/15);
+ var tr=l.slice().sort(function(a,b){return (a.tr||0)-(b.tr||0)}),pct={};tr.forEach(function(c,i){pct[c.n]=i/(tr.length-1)});
+ var sc=l.map(function(c){var cr=creatorOf(c),tags=c.tags||[];
+  var ta=Math.min(1,tags.reduce(function(s,t){return s+(S.hist[t]||0)},0)/mt),ca=cr&&P.c[cr.k]?Math.max(-1,Math.min(1,P.c[cr.k]/mc)):0,pa=(P.p[srcKey(c)]||0)/mp;
+  var pop=Math.log(1+(c.views||c.v||0))/Math.LN10/7,age=c.pub?(now-new Date(c.pub))/36e5:200,fresh=Math.exp(-age/72);
+  var v=str*(1.2*ta+1.0*ca+0.3*pa)+(1-0.4*str)*(0.6*pct[c.n]+0.3*fresh+0.3*pop)+0.08*hsh(c.n+':'+day);
+  var e=P.seen[c.n];if(e){var since=(now-e[0])/36e5;v-=(e[1]>=15||e[2]>0)?0.5+1.2*Math.exp(-since/72):0.15}
+  return {c:c,v:v,k:cr?cr.k:c.n}}).sort(function(a,b){return b.v-a.v});
+ var out=[],recent=[];while(sc.length){var bi=0,bv=-1e9;for(var i=0;i<Math.min(15,sc.length);i++){var r=sc[i],n=0;recent.forEach(function(k){if(k===r.k)n++});var v=r.v-0.35*n-(recent[recent.length-1]===r.k?0.3:0);if(v>bv){bv=v;bi=i}}
+  var pick=sc.splice(bi,1)[0];out.push(pick.c);recent.push(pick.k);if(recent.length>6)recent.shift()}
+ return out};
 function thumb(c,rank){
  var u=thumbUrl(c);var img=u?h('img',{alt:'',loading:'lazy',src:u}):null;if(img){img.onerror=function(){img.remove()};if(c.p==='YouTube'&&type(c)==='video')img.onload=function(){if(ytDead(img))markDead(c,img)}}
  var st=type(c)==='stream';
@@ -273,7 +302,7 @@ function list(){
  var key={best:S.period,trending:'tr',views:'v'}[S.sub[S.sec]];
  if(S.sub[S.sec]==='best')l=l.filter(function(c){return c[S.period]>0});
  if(key)l.sort(function(a,b){return b[key]-a[key]});
- else l.sort(function(a,b){function sc(c){return c.tags.reduce(function(s,t){return s+(S.hist[t]||0)},0)}return (sc(b)-sc(a))||(b.tr-a.tr)});
+ else l=RC.rank(l);
  return langFirst(l);
 }
 // Typing in the search bar searches the whole site (clips, videos, live and past streams, posts), not only the open tab.
@@ -449,7 +478,7 @@ function tryOpen(last){var w=S.want;if(!w)return;if($('lb').open&&S.open&&String
 function syncHash(){var hs=toHash();if(location.hash!==hs){try{history.replaceState(null,'',hs)}catch(e){}}}
 function openItem(c){
  if(c.p==='News'){window.open(c.url,'_blank','noopener');return}
- S.open=c;S.unmuted=false;TW.pl=null;bump(c.tags,2);var t=type(c);$('unm').hidden=!(MOBILE&&t!=='post'&&['YouTube','TikTok','Twitch','Kick'].indexOf(c.p)>=0);
+ S.open=c;S.unmuted=false;TW.pl=null;bump(c.tags,2);RC.start(c,'open');var t=type(c);$('unm').hidden=!(MOBILE&&t!=='post'&&['YouTube','TikTok','Twitch','Kick'].indexOf(c.p)>=0);
  var cls=t==='post'?'post':(t==='video'&&(c.p==='TikTok'||c.short||c.vert))?'tall':'wide';
  stopUp();AUTO.done=null;
  if(c.clip&&c.dur){var dc=c;AUTO.dt=setTimeout(function(){ended(dc)},(c.dur+3)*1000)}
@@ -472,7 +501,7 @@ function openItem(c){
 function crownSvg(){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','18');sv.setAttribute('height','18');sv.setAttribute('viewBox','0 0 24 24');sv.setAttribute('aria-hidden','true');sv.setAttribute('class','crown');pa.setAttribute('d','M3 7.5l4.6 4.1L12 4.5l4.4 7.1L21 7.5l-1.9 10.5H4.9z');pa.setAttribute('fill','#FFC23D');pa.setAttribute('stroke','#B8860B');pa.setAttribute('stroke-width','1.2');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function starSvg(filled){var ns='http://www.w3.org/2000/svg',sv=document.createElementNS(ns,'svg'),pa=document.createElementNS(ns,'path');sv.setAttribute('width','16');sv.setAttribute('height','16');sv.setAttribute('viewBox','0 0 16 16');sv.setAttribute('aria-hidden','true');pa.setAttribute('d','M8 1.2l2.05 4.25 4.65.62-3.4 3.22.86 4.61L8 11.65 3.84 13.9l.86-4.61-3.4-3.22 4.65-.62z');pa.setAttribute('fill',filled?'currentColor':'none');pa.setAttribute('stroke','currentColor');pa.setAttribute('stroke-width','1.6');pa.setAttribute('stroke-linejoin','round');sv.append(pa);return sv}
 function saveBtn(){var on=!!S.saved[S.open.n];var b=$('save');b.replaceChildren(starSvg(on),document.createTextNode(on?'In favorites':'Add to favorites'));b.setAttribute('aria-pressed',String(on));b.className='pill'+(on?' solid':'')}
-function toggleFav(c){var on=!S.saved[c.n];if(on)S.saved[c.n]=Date.now();else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
+function toggleFav(c){var on=!S.saved[c.n];if(on){S.saved[c.n]=Date.now();RC.fav(c)}else delete S.saved[c.n];store('gc_saved',S.saved);if(c.kind==='live'){if(on)S.chans[c.n]={n:c.n,ty:'stream',kind:'live',p:c.p,ch:c.ch,t:c.name,name:c.name,sub:c.name};else delete S.chans[c.n];store('gc_chans',S.chans)}if(S.open===c)saveBtn();render();toast(on?'Added to your favorites':'Removed from your favorites')}
 $('save').onclick=function(){var c=S.open;if(!S.saved[c.n]&&!S.user){signIn('Sign in to add favorites',function(){if(!S.saved[c.n])toggleFav(c)});return}toggleFav(c)};
 var SID={then:null};
 function signIn(why,then){SID.then=then||null;var d=$('sid');
@@ -557,7 +586,7 @@ $('unm').onclick=function(){var c=S.open;if(!c)return;S.unmuted=true;$('unm').hi
  else if(c.p==='Kick'&&f){f.src=f.src.replace('muted=true','muted=false')}};
 function closeLb(){stopUp();$('player').replaceChildren();if($('lb').open)$('lb').close()}
 $('close').onclick=closeLb;
-$('lb').addEventListener('close',function(){stopUp();$('player').replaceChildren();stopChat();$('chat').replaceChildren();S.want=null;syncHash()});
+$('lb').addEventListener('close',function(){RC.stop();stopUp();$('player').replaceChildren();stopChat();$('chat').replaceChildren();S.want=null;syncHash()});
 $('lbbox').addEventListener('click',function(e){if(e.target===$('lbbox'))closeLb()});
 var qt;$('q').addEventListener('input',function(e){S.q=e.target.value;S.qin='all';window.scrollTo(0,0);render();clearTimeout(qt);qt=setTimeout(function(){var m=list().filter(function(c){return c.tags});if(S.q.trim().length>2&&m.length)bump(m[0].tags,0.5)},800)});
 $('wl').onclick=function(){go('watchlist')};

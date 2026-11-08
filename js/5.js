@@ -1,3 +1,41 @@
+RC.add=function(c,w,tagW){var P=RC.P,cr=creatorOf(c);if(cr)P.c[cr.k]=(P.c[cr.k]||0)+w;var sk=srcKey(c);P.p[sk]=(P.p[sk]||0)+w*0.3;if(tagW)bump(c.tags,tagW);P.n+=Math.abs(w)};
+// start: something began playing (opened, or reached in swipe mode). stop: credit the watch time.
+RC.start=function(c,how){RC.stop();if(!c||type(c)==='post')return;RC.cur={c:c,t:Date.now(),how:how};var e=RC.P.seen[c.n]||[0,0,0];e[0]=Date.now();if(how==='open'){e[2]++;RC.add(c,1,0)}RC.P.seen[c.n]=e;RC.save()};
+RC.stop=function(){var x=RC.cur;RC.cur=null;if(!x)return;var sec=Math.min(180,(Date.now()-x.t)/1000),e=RC.P.seen[x.c.n];if(e)e[1]+=sec;
+ if(x.how==='swipe'&&sec<2.5)RC.add(x.c,-0.4,0);else if(sec>=3)RC.add(x.c,Math.min(3,sec/20),Math.min(2,sec/40));RC.save()};
+RC.fav=function(c){RC.add(c,5,3);RC.save()};
+RC.rank=function(l){if(l.length<2)return l;var P=RC.P,now=Date.now(),day=Math.floor(now/864e5);
+ function mx(o){var m=1;for(var x in o)m=Math.max(m,Math.abs(o[x]));return m}
+ var mt=mx(S.hist),mc=mx(P.c),mp=mx(P.p),str=Math.min(1,P.n/15);
+ var tr=l.slice().sort(function(a,b){return (a.tr||0)-(b.tr||0)}),pct={};tr.forEach(function(c,i){pct[c.n]=i/(tr.length-1)});
+ var sc=l.map(function(c){var cr=creatorOf(c),tags=c.tags||[];
+  var ta=Math.min(1,tags.reduce(function(s,t){return s+(S.hist[t]||0)},0)/mt),ca=cr&&P.c[cr.k]?Math.max(-1,Math.min(1,P.c[cr.k]/mc)):0,pa=(P.p[srcKey(c)]||0)/mp;
+  var pop=Math.log(1+(c.views||c.v||0))/Math.LN10/7,age=c.pub?(now-new Date(c.pub))/36e5:200,fresh=Math.exp(-age/72);
+  var v=str*(1.2*ta+1.0*ca+0.3*pa)+(1-0.4*str)*(0.6*pct[c.n]+0.3*fresh+0.3*pop)+0.08*hsh(c.n+':'+day);
+  var e=P.seen[c.n];if(e){var since=(now-e[0])/36e5;v-=(e[1]>=15||e[2]>0)?0.5+1.2*Math.exp(-since/72):0.15}
+  return {c:c,v:v,k:cr?cr.k:c.n}}).sort(function(a,b){return b.v-a.v});
+ var out=[],recent=[];while(sc.length){var bi=0,bv=-1e9;for(var i=0;i<Math.min(15,sc.length);i++){var r=sc[i],n=0;recent.forEach(function(k){if(k===r.k)n++});var v=r.v-0.35*n-(recent[recent.length-1]===r.k?0.3:0);if(v>bv){bv=v;bi=i}}
+  var pick=sc.splice(bi,1)[0];out.push(pick.c);recent.push(pick.k);if(recent.length>6)recent.shift()}
+ return out};
+function thumb(c,rank){
+ var u=thumbUrl(c);var img=u?h('img',{alt:'',loading:'lazy',src:u}):null;if(img){img.onerror=function(){img.remove()};if(c.p==='YouTube'&&type(c)==='video')img.onload=function(){if(ytDead(img))markDead(c,img)}}
+ var st=type(c)==='stream';
+ var sk=srcKey(c);
+ return h('div',{class:'thumb '+c.p},[h('span',{class:'init',text:(c.name||c.t||'?').charAt(0).toUpperCase()}),img,c.official&&!st?h('span',{class:'badge off',title:'Official Rockstar Games video',role:'img','aria-label':'Official Rockstar Games video'},[logo(sk,16),h('span',{class:'ot',text:'OFFICIAL'})]):h('span',{class:'badge',title:LABEL[sk]||c.p,role:'img','aria-label':LABEL[sk]||c.p},[logo(sk,16)]),c.kind==='live'&&LIVE&&LIVE.indexOf(c)>=0?h('span',{class:'live',text:c.viewers!=null?'LIVE · '+fmt(c.viewers):'LIVE'}):null,rank?h('span',{class:'rank',text:'#'+rank}):null,S.saved[c.n]?h('span',{class:'saved',text:'★ Favorite'}):null]);
+}
+function hsh(x){x=String(x);var a=2166136261;for(var i=0;i<x.length;i++){a^=x.charCodeAt(i);a=Math.imul(a,16777619)}return (a>>>0)/4294967296}
+// Stand-in favorite counts until accounts and a database exist: seeded from views (or a fixed number for items without views),
+// split by how recently the item was posted. Your own favorites are added on top.
+function favs(c){
+ if(!c._f){var r=hsh(c.n),all=c.views!=null?Math.max(1,Math.round(Math.sqrt(c.views)*(0.5+r*0.6))):c.viewers!=null?Math.max(1,Math.round(Math.sqrt(c.viewers)*12*(0.5+r*0.6))):Math.round(40+r*500);
+  var age=c.pub?(Date.now()-new Date(c.pub))/36e5:24+hsh(c.n+'a')*2000;
+  function part(hrs,lo,span){return age<=hrs?0.55+0.4*(1-age/hrs):lo+hsh(c.n+hrs)*span}
+  var m=Math.min(1,part(720,0.04,0.1)),w=Math.min(m,part(168,0.01,0.04)),d=Math.min(w,part(24,0.001,0.01));
+  c._f={d:Math.round(all*d),w:Math.round(all*w),m:Math.round(all*m),a:all}}
+ var f={d:c._f.d,w:c._f.w,m:c._f.m,a:c._f.a},ts=S.saved[c.n];
+ if(ts){var t=typeof ts==='number'?Date.now()-ts:Infinity;f.a++;if(t<=2592e6)f.m++;if(t<=6048e5)f.w++;if(t<=864e5)f.d++}
+ return f;
+}
 function creatorOf(c){var t=type(c);if(t==='stream')return {k:c.p+':'+c.ch,name:c.name||c.ch,p:c.p};if(t==='post')return {k:c.p+':'+(c.site||c.u),name:c.p==='News'?c.site:c.p==='Reddit'?'u/'+c.u:'@'+c.u,p:c.p};if(t==='video'&&c.u)return {k:c.p+':'+c.u,name:c.u,p:c.p};return null}
 function creators(per,src){
  var m={};(src||VIDEOS.concat(POSTS)).forEach(function(c){var cr=creatorOf(c);if(!cr)return;var f=favs(c)[per];var o=m[cr.k]||(m[cr.k]={k:cr.k,name:cr.name,p:cr.p,f:0,n:0,top:null,tf:-1});o.f+=f;o.n++;if(f>o.tf){o.tf=f;o.top=c}});
@@ -40,16 +78,3 @@ function renderRank(){
  $('cnt').textContent='';
  return wrap;
 }
-function showCreator(o){var t=type(o.top);S.sec=t==='post'?'threads':t==='stream'?'streams':vidSec(o.top);if(t==='video'){S.sub[S.sec]='views';S.tag='All';S.csrc='All'}else if(t==='post')S.filt.threads='All';else{S.sub.streams=o.top.kind==='live'?'live':'vod';S.filt.streams='All'}S.q=o.name.replace(/^@/,'');$('q').value=S.q;render();window.scrollTo(0,0)}
-// Your language first: every list puts items in your language on top (then your country's language), keeping the usual order inside each group.
-// The language comes from the platform where it exists (YouTube audio language, Twitch and Kick stream language, Bluesky post language), otherwise from the title.
-var LANGS=[['en','English'],['es','Español'],['pt','Português'],['fr','Français'],['de','Deutsch'],['it','Italiano'],['tr','Türkçe'],['pl','Polski'],['nl','Nederlands'],['ru','Русский'],['ar','العربية'],['hi','हिन्दी'],['ja','日本語'],['ko','한국어'],['zh','中文'],['th','ไทย'],['id','Bahasa Indonesia']];
-var LNAME={english:'en',spanish:'es','español':'es',portuguese:'pt',french:'fr',german:'de',italian:'it',turkish:'tr',polish:'pl',dutch:'nl',russian:'ru',arabic:'ar',hindi:'hi',japanese:'ja',korean:'ko',chinese:'zh',thai:'th',indonesian:'id'};
-var CC_LANG={BR:'pt',PT:'pt',AO:'pt',MZ:'pt',ES:'es',MX:'es',AR:'es',CO:'es',CL:'es',PE:'es',VE:'es',EC:'es',GT:'es',CU:'es',BO:'es',DO:'es',HN:'es',PY:'es',SV:'es',NI:'es',CR:'es',PA:'es',UY:'es',FR:'fr',BE:'fr',SN:'fr',CI:'fr',DE:'de',AT:'de',CH:'de',IT:'it',TR:'tr',PL:'pl',NL:'nl',RU:'ru',BY:'ru',KZ:'ru',SA:'ar',AE:'ar',EG:'ar',MA:'ar',DZ:'ar',IQ:'ar',JO:'ar',KW:'ar',QA:'ar',IN:'hi',JP:'ja',KR:'ko',CN:'zh',TW:'zh',HK:'zh',TH:'th',ID:'id'};
-var LANG={cc:load('gc_cc',null)};
-function normLang(x){x=String(x||'').trim().toLowerCase();if(!x)return '';if(LNAME[x])return LNAME[x];var m=/^([a-z]{2})(?:[-_].*)?$/.exec(x);return m&&m[1]!=='zx'?m[1]:''}
-function browserLang(){return normLang((navigator.languages&&navigator.languages[0])||navigator.language||'en')||'en'}
-// No language picker (Vin, Nov 8): the visitor's location decides the language shown first, then their browser language.
-function myLang(){return (LANG.cc&&CC_LANG[LANG.cc])||browserLang()}
-var LWORDS={en:'the and is this of to you what new every how with my it will are was',es:'el la los las que por para con una nuevo nueva todo todos mejor esto es del pero muy ya',pt:'o os que do da dos das não novo nova um uma com você isso é mais tudo pra já',fr:'le les des du est une un pour avec nouveau nouvelle sur pas tout qui dans ce',de:'der die das und ist nicht mit ein eine neue neuer auf für wird alles wie ich',it:'il lo gli che non con una nuovo nuova per della tutto è come sono questo',tr:'ve bir bu için yeni çok ile ne mi oldu geldi',pl:'i w na nie jest się z do nowy nowa wszystko jak to',nl:'de het een en van is niet met nieuwe voor op dit wat'};
-var LSETS={};Object.keys(LWORDS).forEach(function(k){LSETS[k]={};LWORDS[k].split(' ').forEach(function(w){LSETS[k][w]=1})});

@@ -32,7 +32,7 @@ function swMount(i){var c=SW.l[i],sl=SW.box.children[i];if(!c||!sl)return;var bo
  if(!SW.muted&&(c.p==='YouTube'||c.p==='TikTok'))fr.addEventListener('load',function(){setTimeout(function(){if(SW.l[SW.i]===c)swSound(fr,c,false)},700)});
  box.replaceChildren(fr)}
 function swUnmount(i){var sl=SW.box&&SW.box.children[i];if(!sl)return;var box=sl.querySelector('.swp');var v=box.querySelector('video');if(v){if(v._hls)try{v._hls.destroy()}catch(x){}v.removeAttribute('src');try{v.load()}catch(x){}}box.replaceChildren()}
-function swActive(i){if(i===SW.i)return;var old=SW.i;SW.i=i;if(old>=0)swUnmount(old);swMount(i);bump(SW.l[i].tags,1);
+function swActive(i){if(i===SW.i)return;var old=SW.i;SW.i=i;if(old>=0)swUnmount(old);swMount(i);RC.start(SW.l[i],'swipe');
  if(i>=SW.l.length-3&&SW.more){SW.more()}}
 function swSoundBtn(b){b.replaceChildren(swIcon(SW.muted?SWI.off:SWI.on,26));b.setAttribute('aria-label',SW.muted?'Turn sound on':'Turn sound off');b.setAttribute('aria-pressed',String(!SW.muted))}
 function swToggleSound(){SW.muted=!SW.muted;SW.box.querySelectorAll('.swsnd').forEach(swSoundBtn);
@@ -68,7 +68,7 @@ function swOpen(start){var l=swList();if(!l.length){toast('No clips loaded yet. 
  try{history.pushState({gcswipe:1},'',location.href);SW.pushed=true}catch(e){SW.pushed=false}
  if(!load('gc_swhint',0))setTimeout(function(){store('gc_swhint',1);var hh=wrap.querySelector('.swhint');if(hh)hh.remove()},3500)}
 function swClose(){if(!SW.on)return;if(SW.pushed){SW.pushed=false;history.back();return}swEnd()}
-function swEnd(){if(!SW.on)return;SW.on=false;if(SW.io)SW.io.disconnect();if(SW.i>=0)swUnmount(SW.i);if(SW.wrap)SW.wrap.remove();SW.wrap=SW.box=null;SW.i=-1;SW.more=null;document.documentElement.classList.remove('swon')}
+function swEnd(){if(!SW.on)return;SW.on=false;RC.stop();if(SW.io)SW.io.disconnect();if(SW.i>=0)swUnmount(SW.i);if(SW.wrap)SW.wrap.remove();SW.wrap=SW.box=null;SW.i=-1;SW.more=null;document.documentElement.classList.remove('swon')}
 window.addEventListener('popstate',function(){if(SW.on){SW.pushed=false;swEnd()}});
 document.addEventListener('keydown',function(e){if(!SW.on)return;if(e.key==='Escape'){swClose();return}
  if(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='j'||e.key==='k'){e.preventDefault();var d=(e.key==='ArrowDown'||e.key==='j')?1:-1;SW.box.scrollTo({top:Math.max(0,SW.i+d)*SW.box.clientHeight,behavior:'smooth'})}});

@@ -46,22 +46,13 @@ function vmeta(c){var a=[who(c)];if(c.views!=null)a.push(fmt(c.views)+' views');
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.k);toast.k=setTimeout(function(){t.classList.remove('show')},2600)}
 function bump(tags,w){(tags||[]).forEach(function(t){S.hist[t]=(S.hist[t]||0)+w});store('gc_hist',S.hist)}
 function topTags(){return Object.keys(S.hist).sort(function(a,b){return S.hist[b]-S.hist[a]}).slice(0,3)}
-function thumb(c,rank){
- var u=thumbUrl(c);var img=u?h('img',{alt:'',loading:'lazy',src:u}):null;if(img){img.onerror=function(){img.remove()};if(c.p==='YouTube'&&type(c)==='video')img.onload=function(){if(ytDead(img))markDead(c,img)}}
- var st=type(c)==='stream';
- var sk=srcKey(c);
- return h('div',{class:'thumb '+c.p},[h('span',{class:'init',text:(c.name||c.t||'?').charAt(0).toUpperCase()}),img,c.official&&!st?h('span',{class:'badge off',title:'Official Rockstar Games video',role:'img','aria-label':'Official Rockstar Games video'},[logo(sk,16),h('span',{class:'ot',text:'OFFICIAL'})]):h('span',{class:'badge',title:LABEL[sk]||c.p,role:'img','aria-label':LABEL[sk]||c.p},[logo(sk,16)]),c.kind==='live'&&LIVE&&LIVE.indexOf(c)>=0?h('span',{class:'live',text:c.viewers!=null?'LIVE · '+fmt(c.viewers):'LIVE'}):null,rank?h('span',{class:'rank',text:'#'+rank}):null,S.saved[c.n]?h('span',{class:'saved',text:'★ Favorite'}):null]);
-}
-function hsh(x){x=String(x);var a=2166136261;for(var i=0;i<x.length;i++){a^=x.charCodeAt(i);a=Math.imul(a,16777619)}return (a>>>0)/4294967296}
-// Stand-in favorite counts until accounts and a database exist: seeded from views (or a fixed number for items without views),
-// split by how recently the item was posted. Your own favorites are added on top.
-function favs(c){
- if(!c._f){var r=hsh(c.n),all=c.views!=null?Math.max(1,Math.round(Math.sqrt(c.views)*(0.5+r*0.6))):c.viewers!=null?Math.max(1,Math.round(Math.sqrt(c.viewers)*12*(0.5+r*0.6))):Math.round(40+r*500);
-  var age=c.pub?(Date.now()-new Date(c.pub))/36e5:24+hsh(c.n+'a')*2000;
-  function part(hrs,lo,span){return age<=hrs?0.55+0.4*(1-age/hrs):lo+hsh(c.n+hrs)*span}
-  var m=Math.min(1,part(720,0.04,0.1)),w=Math.min(m,part(168,0.01,0.04)),d=Math.min(w,part(24,0.001,0.01));
-  c._f={d:Math.round(all*d),w:Math.round(all*w),m:Math.round(all*m),a:all}}
- var f={d:c._f.d,w:c._f.w,m:c._f.m,a:c._f.a},ts=S.saved[c.n];
- if(ts){var t=typeof ts==='number'?Date.now()-ts:Infinity;f.a++;if(t<=2592e6)f.m++;if(t<=6048e5)f.w++;if(t<=864e5)f.d++}
- return f;
-}
+// For you (Vin, Nov 8): a YouTube-style recommender that learns each viewer's taste on their own device (no account needed).
+// Signals: what they open and how long they watch it, quick skips in swipe mode, favorites, searches and tag taps,
+// rolled up into the creators, tags and platforms they like. Old interest fades (halves every 2 weeks).
+// Ranking mixes that taste with what's trending, fresh and popular, pushes down things they've already seen,
+// avoids the same creator back to back, and reshuffles a little each day so the page doesn't go stale.
+var RC={P:load('gc_prof',null),cur:null};
+(function(){var P=RC.P;if(!P||!P.c)P=RC.P={c:{},p:{},seen:{},n:0,at:Date.now()};
+ var k=Math.pow(0.5,(Date.now()-(P.at||Date.now()))/(14*864e5));if(k<0.999){['c','p'].forEach(function(m){for(var x in P[m]){P[m][x]*=k;if(Math.abs(P[m][x])<0.05)delete P[m][x]}});for(var t in S.hist){S.hist[t]*=k;if(S.hist[t]<0.05)delete S.hist[t]}P.n*=k;store('gc_hist',S.hist)}
+ P.at=Date.now()})();
+RC.save=function(){var P=RC.P,ks=Object.keys(P.seen);if(ks.length>1500){ks.sort(function(a,b){return P.seen[a][0]-P.seen[b][0]});ks.slice(0,ks.length-1200).forEach(function(x){delete P.seen[x]})}P.at=Date.now();store('gc_prof',P)};
