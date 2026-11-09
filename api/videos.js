@@ -3,6 +3,9 @@
 // of the channels those searches found (1 unit per 50 videos, no search) to reach 1,000 videos.
 // Good results are cached for 12 hours; an empty or failed result only for 10 minutes.
 // Add ?debug=1 to see how many videos each step returned and any errors (each debug call uses 8 searches).
+// YouTube also has a separate daily limit on searches. When it runs out (Nov 9: every redeploy clears the cache, so
+// many refreshes in one day used it up), the feed still fills from the uploads of known GTA channels below, which
+// don't use searches. Those results are cached for only 1 hour so the full feed comes back once searches reset.
 
 const JOBS = [
   { q: 'GTA 6', order: 'viewCount', pages: 2 },
@@ -15,6 +18,8 @@ const JOBS = [
 ];
 const GTA6 = /gta ?(6|vi)\b|grand theft auto (6|vi)\b|vice city|leonida/i;
 const CHANNELS = 40, CHANNEL_PAGES = 2;
+// Known GTA channels (YouTube @handles), always read without searching. A handle that doesn't resolve is skipped.
+const SEED_HANDLES = ['RockstarGames', 'MrBossFTW', 'TGG', 'Vadact', 'GTASeriesVideos', 'DarkViperAU', 'TypicalGamer'];
 
 const TAGS = [
   ['Trailers', /trailer/i],
@@ -70,8 +75,18 @@ module.exports = async function handler(req, res) {
       log.jobs.push(job.q + ' / ' + job.order + (job.days ? ' / ' + job.days + 'd' : '') + ': ' + got);
     } catch (e) { log.jobs.push(job.q + ': ERROR ' + String(e.message || e).slice(0, 160)); }
   }));
-  // The channels that came up most often: read their recent uploads (no search needed) and keep the GTA 6 ones.
-  const top = Object.keys(chans).sort((a, b) => chans[b] - chans[a]).slice(0, CHANNELS);
+  // The channels that came up most often, plus the known GTA channels: read their recent uploads (no search needed)
+  // and keep the GTA 6 ones.
+  const seeds = [];
+  await Promise.all(SEED_HANDLES.map(async hd => {
+    try {
+      const j = await getJson('https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=' + encodeURIComponent(hd) + '&key=' + key);
+      const id = j.items && j.items[0] && j.items[0].id;
+      if (id && /^UC/.test(id)) seeds.push(id);
+    } catch (e) { log.seedError = String(e.message || e).slice(0, 120); }
+  }));
+  log.seeds = seeds.length + ' of ' + SEED_HANDLES.length + ' known channels found';
+  const top = [...new Set(Object.keys(chans).sort((a, b) => chans[b] - chans[a]).slice(0, CHANNELS).concat(seeds))];
   let fromChannels = 0;
   await Promise.all(top.map(async c => {
     let token = '';
@@ -112,6 +127,7 @@ module.exports = async function handler(req, res) {
   const out = videos.slice(0, 1000);
   log.uniqueIds = list.length; log.kept = out.length;
   console.log('videos', JSON.stringify(log));
-  res.setHeader('Cache-Control', out.length ? 'public, s-maxage=43200, stale-while-revalidate=86400' : 'public, s-maxage=600');
+  const searchFailed = log.jobs.some(x => /ERROR/.test(x));
+  res.setHeader('Cache-Control', !out.length ? 'public, s-maxage=600' : searchFailed ? 'public, s-maxage=3600, stale-while-revalidate=3600' : 'public, s-maxage=43200, stale-while-revalidate=86400');
   res.status(200).json(debug ? { log, sample: out.slice(0, 5), count: out.length } : { videos: out, fetchedAt: new Date().toISOString() });
 };
