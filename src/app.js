@@ -116,7 +116,9 @@ var INTRO={
 function isShort(c){return !!(c.short||c.vert||c.clip||c.kclip||c.p==='TikTok'||c.p==='Medal'||c.p==='Reddit'||c.p==='Instagram'||(c.dur>0&&c.dur<=60))}
 function isVid(sec){return sec==='clips'||sec==='videos'}
 function vidSec(c){return isShort(c)?'clips':'videos'}
-var SECS=[['clips','Clips'],['videos','Videos'],['streams','Streams'],['threads','Threads'],['rankings','Rankings']];
+// Rankings is hidden until the site has enough traction (Vin, Nov 12). Set RANKINGS_ON=true to bring the tab back.
+var RANKINGS_ON=false;
+var SECS=[['clips','Clips'],['videos','Videos'],['streams','Streams'],['threads','Threads'],['rankings','Rankings']].filter(function(s){return RANKINGS_ON||s[0]!=='rankings'});
 var SUBS={clips:[['foryou','For you'],['best','Best of'],['trending','Trending'],['views','Most viewed']],videos:[['foryou','For you'],['best','Best of'],['trending','Trending'],['views','Most viewed']],streams:[['live','Live now'],['vod','Past streams']],threads:[['hot','Hot today'],['top','Top this week']],rankings:[['favs','Most favorited'],['creators','Top creators']]};
 var FILTERS={streams:['All'],threads:['All']};
 var CSRC=['All','YouTube','Shorts','TikTok','Twitch','Kick','Reddit','Medal','Rockstar'];
@@ -461,7 +463,7 @@ function toHash(){
 }
 function fromHash(){
  var m=location.hash.match(/^#\/([\w-]+)(?:\/([\w-]+))?(?:\?(.*))?$/);if(!m)return;
- var sec=unslug(m[1]);if(!sec||['clips','videos','streams','threads','watchlist','rankings'].indexOf(sec)<0)return;
+ var sec=unslug(m[1]);if(!sec||['clips','videos','streams','threads','watchlist','rankings'].indexOf(sec)<0||(sec==='rankings'&&!RANKINGS_ON))return;
  S.sec=sec;var sub=m[2]&&unslug(m[2]);
  if(SUBS[sec]&&sub&&SUBS[sec].some(function(t){return t[0]===sub}))S.sub[sec]=sub;
  var params={};(m[3]||'').split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0)params[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1))});

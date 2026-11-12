@@ -53,7 +53,7 @@ function toHash(){
 }
 function fromHash(){
  var m=location.hash.match(/^#\/([\w-]+)(?:\/([\w-]+))?(?:\?(.*))?$/);if(!m)return;
- var sec=unslug(m[1]);if(!sec||['clips','videos','streams','threads','watchlist','rankings'].indexOf(sec)<0)return;
+ var sec=unslug(m[1]);if(!sec||['clips','videos','streams','threads','watchlist','rankings'].indexOf(sec)<0||(sec==='rankings'&&!RANKINGS_ON))return;
  S.sec=sec;var sub=m[2]&&unslug(m[2]);
  if(SUBS[sec]&&sub&&SUBS[sec].some(function(t){return t[0]===sub}))S.sub[sec]=sub;
  var params={};(m[3]||'').split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0)params[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1))});
